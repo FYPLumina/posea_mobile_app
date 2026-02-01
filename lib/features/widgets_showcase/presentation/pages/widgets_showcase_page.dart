@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:posea_mobile_app/core/widgets/common_bottom_sheets_demo.dart';
 import '../../../../core/widgets/index.dart';
+import 'package:posea_mobile_app/core/widgets/settings_options_card.dart';
 
 class WidgetsShowcasePage extends StatefulWidget {
   const WidgetsShowcasePage({super.key});
@@ -112,6 +114,56 @@ class _WidgetsShowcasePageState extends State<WidgetsShowcasePage> {
               subtitle: 'Upload the background image',
               iconPath: 'assets/icons/camera.png',
               onTap: () {},
+            ),
+            const SizedBox(height: 32),
+
+            // Custom Bottom Sheets
+            _buildSectionTitle('Custom Bottom Sheets'),
+            const SizedBox(height: 12),
+            CommonBottomSheetsDemo(),
+            const SizedBox(height: 32),
+
+            // Settings Options Card
+            _buildSectionTitle('Settings Options Card'),
+            const SizedBox(height: 12),
+            SettingsOptionsCard(
+              options: [
+                SettingsOption(
+                  icon: Icons.lock_outline,
+                  label: 'Change password',
+                  onTap: () => ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Change password tapped'))),
+                ),
+                SettingsOption(
+                  icon: Icons.language,
+                  label: 'Language',
+                  onTap: () => ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Language tapped'))),
+                ),
+                SettingsOption(
+                  icon: Icons.delete_outline,
+                  label: 'Delete Account',
+                  onTap: () => ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Delete Account tapped'))),
+                ),
+                SettingsOption(
+                  icon: Icons.privacy_tip_outlined,
+                  label: 'Privacy Policy',
+                  onTap: () => ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Privacy Policy tapped'))),
+                ),
+                SettingsOption(
+                  icon: Icons.logout,
+                  label: 'Log Out',
+                  onTap: () => ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Log Out tapped'))),
+                ),
+              ],
             ),
             const SizedBox(height: 32),
 

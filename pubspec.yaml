@@ -45,6 +45,7 @@ dependencies:
   # Networking
   http: ^1.2.2
   connectivity_plus: ^6.1.2
+  flutter_secure_storage: ^10.0.0
 
 dev_dependencies:
   flutter_test:
