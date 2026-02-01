@@ -62,7 +62,7 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation>
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.only(bottom: 34),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: List.generate(widget.items.length, (index) => _buildNavItem(index)),

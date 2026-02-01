@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:posea_mobile_app/features/auth/presentation/pages/forgot_password_page.dart';
+import 'package:posea_mobile_app/features/auth/presentation/pages/login_page.dart';
+import 'package:posea_mobile_app/features/auth/presentation/pages/sign_up_page.dart';
+import 'package:posea_mobile_app/features/home/presentation/pages/home_page.dart';
+import 'package:posea_mobile_app/features/poses/presentation/pages/female_poses_page.dart';
+import 'package:posea_mobile_app/features/poses/presentation/pages/male_poses_page.dart';
 import 'package:posea_mobile_app/features/splash/presentation/pages/splash_screen.dart';
 import 'route_names.dart';
 
@@ -15,6 +21,36 @@ class AppRouter {
         path: RouteNames.splash,
         name: RouteNames.splash,
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.login,
+        name: RouteNames.login,
+        builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: RouteNames.register,
+        name: RouteNames.register,
+        builder: (context, state) => const SignUpPage(),
+      ),
+      GoRoute(
+        path: RouteNames.forgotPassword,
+        name: RouteNames.forgotPassword,
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: RouteNames.home,
+        name: RouteNames.home,
+        builder: (context, state) => const HomePage(),
+      ),
+      GoRoute(
+        path: '/male-poses',
+        name: 'male-poses',
+        builder: (context, state) => const MalePosesPage(),
+      ),
+      GoRoute(
+        path: '/female-poses',
+        name: 'female-poses',
+        builder: (context, state) => const FemalePosesPage(),
       ),
       // Add more routes here as you create features
       // Example:
