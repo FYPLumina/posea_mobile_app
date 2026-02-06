@@ -5,6 +5,11 @@ class RouteNames {
   // Core routes
   static const String splash = '/';
   static const String home = '/home';
+  static const String malePoses = '/male-poses';
+  static const String femalePoses = '/female-poses';
+  static const String uploadBackground = '/upload-background';
+  static const String previewPose = '/preview-pose';
+
 
   // Authentication routes
   static const String login = '/login';
@@ -14,6 +19,7 @@ class RouteNames {
   // Profile routes
   static const String profile = '/profile';
   static const String editProfile = '/profile/edit';
+  static const String changePassword = '/profile/change-password';
 
   // Add more route names as needed
   // Example:

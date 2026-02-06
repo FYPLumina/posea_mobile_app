@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:posea_mobile_app/core/routing/route_names.dart';
 import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
 import 'package:posea_mobile_app/core/widgets/search_input_field.dart';
 import 'package:posea_mobile_app/features/home/presentation/widgets/browse_by_style_grid.dart';
@@ -39,7 +40,7 @@ class HomePage extends StatelessWidget {
                         title: 'Male Poses',
                         image: 'assets/images/male-pose-sample.png',
                         onTap: () {
-                          context.go('/male-poses');
+                          context.go(RouteNames.malePoses);
                         },
                       ),
                     ),
@@ -48,7 +49,7 @@ class HomePage extends StatelessWidget {
                         title: 'Female Poses',
                         image: 'assets/images/female-pose-sample.png',
                         onTap: () {
-                          context.go('/female-poses');
+                          context.go(RouteNames.femalePoses);
                         },
                       ),
                     ),
@@ -76,10 +77,23 @@ class HomePage extends StatelessWidget {
         ],
         currentIndex: 0,
         onItemTapped: (index) {
-          // TODO: Implement navigation logic
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Tapped on index $index'), duration: const Duration(seconds: 1)),
-          );
+          switch (index) {
+            case 0:
+              context.go(RouteNames.home);
+              break;
+            case 1:
+              // Navigate to Gallery
+              break;
+            case 2:
+              context.go(RouteNames.uploadBackground);
+              break;
+            case 3:
+              // Navigate to Favorites
+              break;
+            case 4:
+              context.go(RouteNames.profile);
+              break;
+          }
         },
       ),
     );

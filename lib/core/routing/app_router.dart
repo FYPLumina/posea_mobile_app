@@ -3,9 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:posea_mobile_app/features/auth/presentation/pages/login_page.dart';
 import 'package:posea_mobile_app/features/auth/presentation/pages/sign_up_page.dart';
+import 'package:posea_mobile_app/features/background/upload_background_screen.dart';
 import 'package:posea_mobile_app/features/home/presentation/pages/home_page.dart';
 import 'package:posea_mobile_app/features/poses/presentation/pages/female_poses_page.dart';
 import 'package:posea_mobile_app/features/poses/presentation/pages/male_poses_page.dart';
+import 'package:posea_mobile_app/features/poses/presentation/pages/preview_pose_screen.dart';
+import 'package:posea_mobile_app/features/profile/change_password_screen.dart';
+import 'package:posea_mobile_app/features/profile/profile_screens.dart';
 import 'package:posea_mobile_app/features/splash/presentation/pages/splash_screen.dart';
 import 'route_names.dart';
 
@@ -43,14 +47,54 @@ class AppRouter {
         builder: (context, state) => const HomePage(),
       ),
       GoRoute(
-        path: '/male-poses',
-        name: 'male-poses',
+        path: RouteNames.malePoses,
+        name: RouteNames.malePoses,
         builder: (context, state) => const MalePosesPage(),
       ),
       GoRoute(
-        path: '/female-poses',
-        name: 'female-poses',
+        path: RouteNames.femalePoses,
+        name: RouteNames.femalePoses,
         builder: (context, state) => const FemalePosesPage(),
+      ),
+      GoRoute(
+        path: RouteNames.profile,
+        name: RouteNames.profile,
+        builder: (context, state) {
+          // Lazy load the profile screen
+          return const ProfileScreen();
+        },
+      ),
+      GoRoute(
+        path: RouteNames.editProfile,
+        name: RouteNames.editProfile,
+        builder: (context, state) {
+          // Lazy load the edit profile screen
+          return const EditProfileScreen();
+        },
+      ),
+      GoRoute(
+        path: RouteNames.changePassword,
+        name: RouteNames.changePassword,
+        builder: (context, state) {
+          // Lazy load the change password screen
+          return const ChangePasswordScreen();
+        },
+      ),
+      GoRoute(
+        path: RouteNames.uploadBackground,
+        name: RouteNames.uploadBackground,
+        builder: (context, state) {
+          // Lazy load the upload background screen
+          return const UploadBackgroundScreen();
+        },
+      ),
+      GoRoute(
+        path: RouteNames.previewPose,
+        name: RouteNames.previewPose,
+        builder: (context, state) {
+          // Lazy load the preview pose screen
+          return const PreviewPoseScreen();
+        },
       ),
       // Add more routes here as you create features
       // Example:

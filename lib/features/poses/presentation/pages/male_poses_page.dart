@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:posea_mobile_app/core/routing/route_names.dart';
 import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
 import 'package:posea_mobile_app/core/widgets/custom_card.dart';
 import 'package:go_router/go_router.dart';
@@ -68,7 +69,23 @@ class MalePosesPage extends StatelessWidget {
         ],
         currentIndex: 0,
         onItemTapped: (index) {
-          if (index == 0) context.go('/home');
+          switch (index) {
+            case 0:
+              context.go(RouteNames.home);
+              break;
+            case 1:
+              // Navigate to Gallery
+              break;
+            case 2:
+              context.go(RouteNames.uploadBackground);
+              break;
+            case 3:
+              // Navigate to Favorites
+              break;
+            case 4:
+              context.go(RouteNames.profile);
+              break;
+          }
         },
       ),
     );

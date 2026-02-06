@@ -5,6 +5,7 @@ class BrowseByStyleGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //TODO: Replace with dynamic styles and images
     final images = [
       'assets/images/style1.jpg',
       'assets/images/style2.jpg',

@@ -13,6 +13,7 @@ class PoseOfTheDayCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
+            //TODO: Replace with dynamic image
             child: Image.asset(
               'assets/images/pose-of-the-day-sample-image.png',
               height: 300,
