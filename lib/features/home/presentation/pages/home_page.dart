@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/core/routing/route_names.dart';
 import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
 import 'package:posea_mobile_app/core/widgets/search_input_field.dart';
-import 'package:posea_mobile_app/features/home/presentation/widgets/browse_by_style_grid.dart';
 import 'package:posea_mobile_app/features/home/presentation/widgets/greeting_search_widgets.dart';
 
 import 'package:posea_mobile_app/features/home/presentation/widgets/pose_of_the_day_card.dart';
@@ -55,13 +54,13 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Browse by style',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                const BrowseByStyleGrid(),
+                // const SizedBox(height: 24),
+                // const Text(
+                //   'Browse by style',
+                //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                // ),
+                // const SizedBox(height: 12),
+                // const BrowseByStyleGrid(),
               ],
             ),
           ),

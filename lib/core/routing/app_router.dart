@@ -34,7 +34,7 @@ class AppRouter {
       GoRoute(
         path: RouteNames.register,
         name: RouteNames.register,
-        builder: (context, state) => const SignUpPage(),
+        builder: (context, state) => SignUpPage(),
       ),
       GoRoute(
         path: RouteNames.forgotPassword,
@@ -93,7 +93,8 @@ class AppRouter {
         name: RouteNames.previewPose,
         builder: (context, state) {
           // Lazy load the preview pose screen
-          return const PreviewPoseScreen();
+          final gender = state.uri.queryParameters['gender'] ?? 'male';
+          return PreviewPoseScreen(gender: gender);
         },
       ),
       // Add more routes here as you create features

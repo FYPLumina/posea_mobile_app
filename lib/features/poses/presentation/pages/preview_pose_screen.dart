@@ -2,9 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/core/routing/route_names.dart';
 import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
+import 'package:posea_mobile_app/features/poses/data/datasources/pose_api_service.dart';
+import 'package:posea_mobile_app/features/poses/data/repositories/pose_repository.dart';
+import 'package:posea_mobile_app/features/poses/data/models/pose_model.dart';
 
-class PreviewPoseScreen extends StatelessWidget {
-  const PreviewPoseScreen({Key? key}) : super(key: key);
+class PreviewPoseScreen extends StatefulWidget {
+  final String gender;
+  const PreviewPoseScreen({Key? key, required this.gender}) : super(key: key);
+
+  @override
+  State<PreviewPoseScreen> createState() => _PreviewPoseScreenState();
+}
+
+class _PreviewPoseScreenState extends State<PreviewPoseScreen> {
+  late final PoseRepository _poseRepository;
+  late Future<List<Pose>> _posesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set your API base URL here
+    _poseRepository = PoseRepository(
+      apiService: PoseApiService(baseUrl: 'http://10.239.85.112:8000'),
+    );
+    _posesFuture = _poseRepository.getPosesByGender(widget.gender);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,18 +57,24 @@ class PreviewPoseScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 16),
             Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                children: [
-                  _PoseImage('https://images.unsplash.com/photo-1506744038136-46273834b3fb'),
-                  _PoseImage('https://images.unsplash.com/photo-1465101046530-73398c7f1b58'),
-                  _PoseImage('https://images.unsplash.com/photo-1519125323398-675f0ddb6308'),
-                  _PoseImage('https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e'),
-                  _PoseImage('https://images.unsplash.com/photo-1506784365847-bbad939e5333'),
-                  _PoseImage('https://images.unsplash.com/photo-1494790108377-be9c29b29330'),
-                ],
+              child: FutureBuilder<List<Pose>>(
+                future: _posesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: \\${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No poses found.'));
+                  }
+                  final poses = snapshot.data!;
+                  return GridView.count(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    children: poses.map((pose) => _PoseImage(pose.poseImage)).toList(),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 16),

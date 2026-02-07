@@ -18,6 +18,8 @@ class CustomTextInputField extends StatelessWidget {
     this.fillColor = Colors.white,
     this.borderColor = Colors.grey,
     this.focusedBorderColor = Colors.grey,
+    this.lable,
+    this.enabled = true,
   });
 
   final String hintText;
@@ -35,37 +37,50 @@ class CustomTextInputField extends StatelessWidget {
   final Color fillColor;
   final Color borderColor;
   final Color focusedBorderColor;
+  final String? lable;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      onChanged: onChanged,
-      validator: validator,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      maxLines: obscureText ? 1 : maxLines,
-      minLines: minLines,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-        prefixIcon: prefixIcon,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Colors.grey, width: 0.5),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (lable != null)
+          Text(
+            lable!,
+            style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black),
+          ),
+        TextFormField(
+          controller: controller,
+          onChanged: onChanged,
+          validator: validator,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          maxLines: obscureText ? 1 : maxLines,
+          minLines: minLines,
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+            prefixIcon: prefixIcon,
+            filled: filled,
+            fillColor: fillColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(borderRadius),
+              borderSide: BorderSide(color: borderColor, width: 0.5),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(borderRadius),
+              borderSide: BorderSide(color: borderColor, width: 0.5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(borderRadius),
+              borderSide: BorderSide(color: focusedBorderColor, width: 1),
+            ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          ),
+          enabled: enabled,
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Colors.grey, width: 0.5),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Colors.grey, width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-      ),
+      ],
     );
   }
 }

@@ -1,11 +1,79 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/core/routing/route_names.dart';
 import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
 import 'package:posea_mobile_app/core/widgets/custom_card.dart';
-import 'package:go_router/go_router.dart';
 
-class MalePosesPage extends StatelessWidget {
+import 'package:posea_mobile_app/features/poses/data/datasources/pose_api_service.dart';
+import 'package:posea_mobile_app/features/poses/data/repositories/pose_repository.dart';
+import 'package:posea_mobile_app/features/poses/data/models/pose_model.dart';
+import 'dart:convert';
+
+class MalePosesPage extends StatefulWidget {
   const MalePosesPage({Key? key}) : super(key: key);
+
+  @override
+  State<MalePosesPage> createState() => _MalePosesPageState();
+}
+
+class _MalePosesPageState extends State<MalePosesPage> {
+  late final PoseRepository _poseRepository;
+  final List<Pose> _poses = [];
+  final ScrollController _scrollController = ScrollController();
+  bool _isLoading = false;
+  bool _hasMore = true;
+  int _offset = 0;
+  final int _limit = 20;
+
+  @override
+  void initState() {
+    super.initState();
+    _poseRepository = PoseRepository(
+      apiService: PoseApiService(baseUrl: 'http://10.239.85.112:8000'),
+    );
+    _fetchMore();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+        !_isLoading &&
+        _hasMore) {
+      _fetchMore();
+    }
+  }
+
+  Future<void> _fetchMore() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final newPoses = await _poseRepository.getPosesByGender(
+        'male',
+        limit: _limit,
+        offset: _offset,
+      );
+      setState(() {
+        _poses.addAll(newPoses);
+        _offset += newPoses.length;
+        _hasMore = newPoses.length == _limit;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _hasMore = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,19 +111,49 @@ class MalePosesPage extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              padding: const EdgeInsets.all(16),
-              children: List.generate(
-                6,
-                (index) => ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset('assets/images/male_pose_${index + 1}.jpg', fit: BoxFit.cover),
-                ),
-              ),
-            ),
+            child: _poses.isEmpty && _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _poses.isEmpty
+                ? const Center(child: Text('No poses found.'))
+                : NotificationListener<ScrollNotification>(
+                    onNotification: (scrollInfo) {
+                      if (!_isLoading &&
+                          _hasMore &&
+                          scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 200) {
+                        _fetchMore();
+                      }
+                      return false;
+                    },
+                    child: GridView.builder(
+                      controller: _scrollController,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _poses.length + (_hasMore ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index >= _poses.length) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        final pose = _poses[index];
+                        Widget imageWidget;
+                        if (pose.poseImageBase64 != null &&
+                            pose.poseImageBase64!.startsWith('data:image')) {
+                          final base64Str = pose.poseImageBase64!.split(',').last;
+                          imageWidget = Image.memory(base64Decode(base64Str), fit: BoxFit.cover);
+                        } else {
+                          final imageUrl = 'http://<your-server-ip>:8000/static/${pose.poseImage}';
+                          imageWidget = Image.network(imageUrl, fit: BoxFit.cover);
+                        }
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: imageWidget,
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),

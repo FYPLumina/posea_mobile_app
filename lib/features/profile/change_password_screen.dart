@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/core/routing/route_names.dart';
+import 'package:posea_mobile_app/features/auth/application/auth_provider.dart';
+import 'package:provider/provider.dart';
 import '../../core/widgets/custom_button.dart';
 import '../../core/widgets/custom_text_input_field.dart';
 
@@ -11,7 +13,7 @@ class ChangePasswordScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final newPasswordController = TextEditingController();
     final confirmPasswordController = TextEditingController();
-
+    final oldPasswordController = TextEditingController();
     return SafeArea(
       top: false,
       child: Scaffold(
@@ -50,6 +52,17 @@ class ChangePasswordScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               const Text(
+                'Old Password',
+                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16, color: Colors.black87),
+              ),
+              const SizedBox(height: 8),
+              CustomTextInputField(
+                hintText: 'Enter your Old Password',
+                controller: oldPasswordController,
+                obscureText: true,
+              ),
+              const SizedBox(height: 20),
+              const Text(
                 'New Password',
                 style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16, color: Colors.black87),
               ),
@@ -73,13 +86,40 @@ class ChangePasswordScreen extends StatelessWidget {
               const SizedBox(height: 48),
               const Spacer(),
               Center(
-                child: CustomButton(
-                  label: 'Reset Password',
-                  onPressed: () {},
-                  backgroundColor: const Color(0xFF8B6F47),
-                  textColor: Colors.white,
-                  width: 220,
-                  height: 48,
+                child: Consumer<AuthProvider>(
+                  builder: (context, auth, _) {
+                    return CustomButton(
+                      label: auth.loading ? 'Resetting...' : 'Reset Password',
+                      onPressed: auth.loading
+                          ? null
+                          : () async {
+                              if (newPasswordController.text != confirmPasswordController.text) {
+                                ScaffoldMessenger.of(
+                                  context,
+                                ).showSnackBar(SnackBar(content: Text('Passwords do not match')));
+                                return;
+                              }
+                              final success = await auth.changePassword(
+                                oldPasswordController.text,
+                                newPasswordController.text,
+                              );
+                              if (success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Password changed successfully')),
+                                );
+                                context.go(RouteNames.profile);
+                              } else if (auth.error != null) {
+                                ScaffoldMessenger.of(
+                                  context,
+                                ).showSnackBar(SnackBar(content: Text(auth.error!)));
+                              }
+                            },
+                      backgroundColor: const Color(0xFF8B6F47),
+                      textColor: Colors.white,
+                      width: 220,
+                      height: 48,
+                    );
+                  },
                 ),
               ),
             ],
