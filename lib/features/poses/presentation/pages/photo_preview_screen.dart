@@ -1,8 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/core/routing/route_names.dart';
+import 'package:posea_mobile_app/core/utils/logger.dart';
 import 'dart:io';
 import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
+import 'package:posea_mobile_app/features/auth/application/auth_provider.dart';
+import 'package:posea_mobile_app/features/poses/data/datasources/pose_image_api_service.dart';
+import 'package:posea_mobile_app/features/poses/data/repositories/pose_image_repository.dart';
+import 'package:provider/provider.dart';
 
 class PhotoPreviewScreen extends StatelessWidget {
   final String imagePath;
@@ -24,12 +31,12 @@ class PhotoPreviewScreen extends StatelessWidget {
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 22),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.search, color: Colors.black),
+        //     onPressed: () {},
+        //   ),
+        // ],
       ),
       body: Column(
         children: [
@@ -83,7 +90,63 @@ class PhotoPreviewScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       minimumSize: const Size(0, 48),
                     ),
-                    onPressed: () {},
+                    onPressed: () async {
+                      // Get pose_id and is_favourite from navigation arguments
+                      final state = GoRouterState.of(context);
+                      final args = state.extra is Map<String, dynamic>
+                          ? state.extra as Map<String, dynamic>
+                          : null;
+                      String poseId = '';
+                      bool isFavourite = false;
+                      if (args != null) {
+                        poseId = args['pose_id']?.toString() ?? '';
+                        isFavourite = args['is_favourite'] ?? false;
+                      }
+                      AppLogger.debug(
+                        'PhotoPreviewScreen: pose_id = ' +
+                            poseId +
+                            ', is_favourite = ' +
+                            isFavourite.toString(),
+                      );
+                      if (poseId.isEmpty) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(const SnackBar(content: Text('Missing pose_id')));
+                        return;
+                      }
+                      // Encode image file to base64
+                      try {
+                        final file = File(imagePath);
+                        final bytes = await file.readAsBytes();
+                        final base64Image = 'data:image/png;base64,' + base64Encode(bytes);
+                        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                        final accessToken = authProvider.token;
+                        if (accessToken == null) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(const SnackBar(content: Text('Missing access token')));
+                          return;
+                        }
+                        final poseRepo = PoseImageRepository(apiService: PoseImageApiService());
+                        final success = await poseRepo.captureImage(
+                          capturedImageBase64: base64Image,
+                          poseId: poseId,
+                          isFavourite: isFavourite,
+                          accessToken: accessToken,
+                        );
+                        if (success) {
+                          context.go(RouteNames.home);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Failed to save pose image')),
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      }
+                    },
                     child: const Text(
                       'Save',
                       style: TextStyle(
@@ -115,13 +178,13 @@ class PhotoPreviewScreen extends StatelessWidget {
               context.go(RouteNames.home);
               break;
             case 1:
-              // Navigate to Gallery
+              context.go(RouteNames.gallery);
               break;
             case 2:
               context.go(RouteNames.uploadBackground);
               break;
             case 3:
-              // Navigate to Favorites
+              context.go(RouteNames.favourites);
               break;
             case 4:
               context.go(RouteNames.profile);

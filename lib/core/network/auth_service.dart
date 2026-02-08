@@ -1,23 +1,24 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../config/app_config.dart';
 
 class AuthService {
   final String baseUrl;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  AuthService(this.baseUrl);
+  AuthService([String? baseUrl]) : baseUrl = baseUrl ?? AppConfig.baseUrl;
 
   Future<String?> login(String email, String password) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/login'),
+      Uri.parse('$baseUrl/auth/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final token = data['token'];
-      await _storage.write(key: 'auth_token', value: token);
+      await _storage.write(key: 'access_token', value: token);
       return token;
     } else {
       throw Exception(_parseError(response));
@@ -25,19 +26,19 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    await _storage.delete(key: 'auth_token');
+    await _storage.delete(key: 'access_token');
   }
 
   Future<String?> signUp(String name, String email, String password) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/signup'),
+      Uri.parse('$baseUrl/auth/signup'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'name': name, 'email': email, 'password': password}),
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final token = data['token'];
-      await _storage.write(key: 'auth_token', value: token);
+      await _storage.write(key: 'access_token', value: token);
       return token;
     } else {
       throw Exception(_parseError(response));
@@ -46,7 +47,7 @@ class AuthService {
 
   Future<void> requestPasswordReset(String email) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/password-reset'),
+      Uri.parse('$baseUrl/auth/password-reset'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email}),
     );
@@ -57,7 +58,7 @@ class AuthService {
 
   Future<void> resetPassword(String token, String newPassword) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/password-reset/confirm'),
+      Uri.parse('$baseUrl/auth/password-reset/confirm'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'token': token, 'password': newPassword}),
     );
@@ -67,7 +68,7 @@ class AuthService {
   }
 
   Future<String?> getToken() async {
-    return await _storage.read(key: 'auth_token');
+    return await _storage.read(key: 'access_token');
   }
 
   String _parseError(http.Response response) {

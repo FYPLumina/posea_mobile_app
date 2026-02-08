@@ -19,7 +19,7 @@ class QuickLinkCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.asset(image, height: 210, width: double.infinity, fit: BoxFit.cover),
+                child: Image.asset(image, height: 230, width: double.infinity, fit: BoxFit.cover),
               ),
             ],
           ),

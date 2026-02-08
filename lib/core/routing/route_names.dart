@@ -9,7 +9,10 @@ class RouteNames {
   static const String femalePoses = '/female-poses';
   static const String uploadBackground = '/upload-background';
   static const String previewPose = '/preview-pose';
-
+  static const String wireframeCamera = '/wireframe-camera';
+  static const String photoPreview = '/photo-preview';
+  static const String gallery = '/gallery';
+  static const String favourites = '/favourites';
 
   // Authentication routes
   static const String login = '/login';

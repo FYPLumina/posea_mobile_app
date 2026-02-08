@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../errors/exceptions.dart';
+import '../config/app_config.dart';
 
 /// HTTP API Client wrapper for handling network requests
 class ApiClient {
@@ -9,11 +10,9 @@ class ApiClient {
   final String baseUrl;
   final Duration timeout;
 
-  ApiClient({
-    http.Client? client,
-    required this.baseUrl,
-    this.timeout = const Duration(seconds: 30),
-  }) : _client = client ?? http.Client();
+  ApiClient({http.Client? client, String? baseUrl, this.timeout = const Duration(seconds: 30)})
+    : baseUrl = baseUrl ?? AppConfig.baseUrl,
+      _client = client ?? http.Client();
 
   /// GET request
   Future<dynamic> get(

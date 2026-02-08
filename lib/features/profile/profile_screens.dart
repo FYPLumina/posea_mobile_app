@@ -208,7 +208,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               BottomNavItem(iconPath: 'assets/icons/camera.png', label: 'Camera'),
               BottomNavItem(
                 iconPath: 'assets/icons/favourites-outlined-icon.png',
-                label: 'Favorites',
+                label: 'Favourites',
               ),
               BottomNavItem(iconPath: 'assets/icons/profile-outlined-icon.png', label: 'Profile'),
             ],
@@ -219,13 +219,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   context.go(RouteNames.home);
                   break;
                 case 1:
-                  // Navigate to Gallery
+                  context.go(RouteNames.gallery);
                   break;
                 case 2:
                   context.go(RouteNames.uploadBackground);
                   break;
                 case 3:
-                  // Navigate to Favorites
+                  context.go(RouteNames.favourites);
                   break;
                 case 4:
                   context.go(RouteNames.profile);

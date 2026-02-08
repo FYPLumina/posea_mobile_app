@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:go_router/go_router.dart';
+import 'package:posea_mobile_app/core/utils/logger.dart';
 
 class WireframeCameraScreen extends StatefulWidget {
-  const WireframeCameraScreen({Key? key}) : super(key: key);
+  final String? skeletonData;
+  const WireframeCameraScreen({Key? key, this.skeletonData}) : super(key: key);
 
   @override
   State<WireframeCameraScreen> createState() => _WireframeCameraScreenState();
@@ -38,6 +41,23 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Retrieve skeletonData from navigation if not provided via constructor
+    final state = GoRouterState.of(context);
+    final args = state.extra is Map<String, dynamic> ? state.extra as Map<String, dynamic> : null;
+    String? skeletonData = widget.skeletonData;
+    String poseIdLog = '';
+    bool isFavouriteLog = false;
+    if (args != null) {
+      poseIdLog = args['pose_id']?.toString() ?? '';
+      isFavouriteLog = args['is_favourite'] ?? false;
+    }
+    debugPrint(
+      'WireframeCameraScreen: build received pose_id = $poseIdLog, is_favourite = $isFavouriteLog',
+    );
+    if (skeletonData == null && args != null && args['skeletonData'] is String) {
+      skeletonData = args['skeletonData'] as String?;
+    }
+    // skeletonData is now available for use
     return Scaffold(
       backgroundColor: const Color(0xFFF8F7F5),
       body: SafeArea(
@@ -123,8 +143,26 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
                     icon: const Icon(Icons.camera_alt, color: Color(0xFF6B4F36)),
                     onPressed: _isCameraReady && _controller != null
                         ? () async {
-                            await _controller!.takePicture();
-                            // TODO: Handle picture
+                            final XFile file = await _controller!.takePicture();
+                            if (context.mounted) {
+                              // Retrieve pose_id and is_favourite from navigation args
+                              final args = ModalRoute.of(context)?.settings.arguments;
+                              // Use poseIdLog and isFavouriteLog from build
+                              AppLogger.debug(
+                                'WireframeCameraScreen: Passing to photo-preview -> pose_id: ' +
+                                    poseIdLog +
+                                    ', is_favourite: ' +
+                                    isFavouriteLog.toString(),
+                              );
+                              context.push(
+                                '/photo-preview',
+                                extra: {
+                                  'imagePath': file.path,
+                                  'pose_id': poseIdLog,
+                                  'is_favourite': isFavouriteLog,
+                                },
+                              );
+                            }
                           }
                         : null,
                   ),

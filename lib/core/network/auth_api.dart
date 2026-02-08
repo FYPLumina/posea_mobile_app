@@ -1,33 +1,34 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
+import '../config/app_config.dart';
 
 class AuthApi {
+  final String baseUrl;
+  final Logger _logger = Logger();
+
+  AuthApi([String? baseUrl]) : baseUrl = baseUrl ?? AppConfig.baseUrl;
+
   Future<Map<String, dynamic>> getProfile({required String token}) async {
-    _logger.i('GET $baseUrl/profile');
+    _logger.i('GET $baseUrl/auth/profile');
     _logger.i('Request headers: {Authorization: Bearer $token}');
     final response = await http.get(
-      Uri.parse('$baseUrl/profile'),
+      Uri.parse('$baseUrl/auth/profile'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
     );
     _logger.i('Response: ${response.statusCode} ${response.body}');
     return jsonDecode(response.body);
   }
 
-  final String baseUrl;
-  final Logger _logger = Logger();
-
-  AuthApi(this.baseUrl);
-
   Future<Map<String, dynamic>> register({
     required String email,
     required String password,
     required String name,
   }) async {
-    _logger.i('POST $baseUrl/register');
+    _logger.i('POST $baseUrl/auth/register');
     _logger.i('Request body: {email: $email, password: $password, name: $name}');
     final response = await http.post(
-      Uri.parse('$baseUrl/register'),
+      Uri.parse('$baseUrl/auth/register'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password, 'name': name}),
     );
@@ -36,10 +37,10 @@ class AuthApi {
   }
 
   Future<Map<String, dynamic>> login({required String email, required String password}) async {
-    _logger.i('POST $baseUrl/login');
+    _logger.i('POST $baseUrl/auth/login');
     _logger.i('Request body: {email: $email, password: $password}');
     final response = await http.post(
-      Uri.parse('$baseUrl/login'),
+      Uri.parse('$baseUrl/auth/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
@@ -48,10 +49,10 @@ class AuthApi {
   }
 
   Future<Map<String, dynamic>> logout({required String token}) async {
-    _logger.i('POST $baseUrl/logout');
+    _logger.i('POST $baseUrl/auth/logout');
     _logger.i('Request headers: {Authorization: Bearer $token}');
     final response = await http.post(
-      Uri.parse('$baseUrl/logout'),
+      Uri.parse('$baseUrl/auth/logout'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
     );
     _logger.i('Response: ${response.statusCode} ${response.body}');
@@ -65,9 +66,9 @@ class AuthApi {
     String? profileImageBase64,
     String? imageFilePath, // local file path for image
   }) async {
-    _logger.i('PUT $baseUrl/profile (multipart/form-data)');
+    _logger.i('PUT $baseUrl/auth/profile (multipart/form-data)');
     _logger.i('Request headers: {Authorization: Bearer $token}');
-    final uri = Uri.parse('$baseUrl/profile');
+    final uri = Uri.parse('$baseUrl/auth/profile');
     final request = http.MultipartRequest('PUT', uri);
     request.headers['Authorization'] = 'Bearer $token';
     request.fields['name'] = name;
@@ -90,11 +91,11 @@ class AuthApi {
     required String oldPassword,
     required String newPassword,
   }) async {
-    _logger.i('POST $baseUrl/change-password');
+    _logger.i('POST $baseUrl/auth/change-password');
     _logger.i('Request headers: {Authorization: Bearer $token}');
     _logger.i('Request body: {old_password: $oldPassword, new_password: $newPassword}');
     final response = await http.post(
-      Uri.parse('$baseUrl/change-password'),
+      Uri.parse('$baseUrl/auth/change-password'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
       body: jsonEncode({'old_password': oldPassword, 'new_password': newPassword}),
     );
@@ -104,7 +105,7 @@ class AuthApi {
 
   Future<Map<String, dynamic>> deleteAccount({required String token}) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/delete-account'),
+      Uri.parse('$baseUrl/'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
     );
     return jsonDecode(response.body);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:posea_mobile_app/core/config/app_config.dart';
 
 import 'core/routing/app_router.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +12,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(
           create: (_) => AuthProvider(
-            AuthApi('http://10.239.85.112:8000/api/auth'), // TODO: Set base URL
+            AuthApi(AppConfig.baseUrl), // TODO: Set base URL
           ),
         ),
       ],

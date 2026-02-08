@@ -4,10 +4,13 @@ import 'package:posea_mobile_app/features/auth/presentation/pages/forgot_passwor
 import 'package:posea_mobile_app/features/auth/presentation/pages/login_page.dart';
 import 'package:posea_mobile_app/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:posea_mobile_app/features/background/upload_background_screen.dart';
+import 'package:posea_mobile_app/features/gallery/presentation/pages/gallery_page.dart';
 import 'package:posea_mobile_app/features/home/presentation/pages/home_page.dart';
 import 'package:posea_mobile_app/features/poses/presentation/pages/female_poses_page.dart';
 import 'package:posea_mobile_app/features/poses/presentation/pages/male_poses_page.dart';
+import 'package:posea_mobile_app/features/poses/presentation/pages/photo_preview_screen.dart';
 import 'package:posea_mobile_app/features/poses/presentation/pages/preview_pose_screen.dart';
+import 'package:posea_mobile_app/features/poses/presentation/pages/wireframe_camera_screen.dart';
 import 'package:posea_mobile_app/features/profile/change_password_screen.dart';
 import 'package:posea_mobile_app/features/profile/profile_screens.dart';
 import 'package:posea_mobile_app/features/splash/presentation/pages/splash_screen.dart';
@@ -93,8 +96,42 @@ class AppRouter {
         name: RouteNames.previewPose,
         builder: (context, state) {
           // Lazy load the preview pose screen
-          final gender = state.uri.queryParameters['gender'] ?? 'male';
-          return PreviewPoseScreen(gender: gender);
+          return PreviewPoseScreen();
+        },
+      ),
+      GoRoute(
+        path: RouteNames.wireframeCamera,
+        name: RouteNames.wireframeCamera,
+        builder: (context, state) {
+          // Lazy load the wireframe camera screen
+          return const WireframeCameraScreen();
+        },
+      ),
+      GoRoute(
+        path: RouteNames.photoPreview,
+        name: RouteNames.photoPreview,
+        builder: (context, state) {
+          final map = state.extra is Map<String, dynamic>
+              ? state.extra as Map<String, dynamic>
+              : null;
+          final imagePath = map?['imagePath'] as String?;
+          return PhotoPreviewScreen(imagePath: imagePath ?? '');
+        },
+      ),
+      GoRoute(
+        path: RouteNames.gallery,
+        name: RouteNames.gallery,
+        builder: (context, state) {
+          // Lazy load the gallery screen
+          return const GalleryPage();
+        },
+      ),
+      GoRoute(
+        path: RouteNames.favourites,
+        name: RouteNames.favourites,
+        builder: (context, state) {
+          // Lazy load the favourites screen
+          return const Scaffold(body: Center(child: Text('Favourites Screen - Coming Soon')));
         },
       ),
       // Add more routes here as you create features

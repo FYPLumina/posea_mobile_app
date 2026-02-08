@@ -7,6 +7,8 @@ import 'package:posea_mobile_app/core/widgets/custom_card.dart';
 import 'package:posea_mobile_app/features/poses/data/datasources/pose_api_service.dart';
 import 'package:posea_mobile_app/features/poses/data/repositories/pose_repository.dart';
 import 'package:posea_mobile_app/features/poses/data/models/pose_model.dart';
+import 'package:posea_mobile_app/features/poses/data/datasources/pose_image_api_service.dart';
+import 'package:posea_mobile_app/features/poses/data/repositories/pose_image_repository.dart';
 import 'dart:convert';
 
 class FemalePosesPage extends StatefulWidget {
@@ -17,6 +19,7 @@ class FemalePosesPage extends StatefulWidget {
 }
 
 class _FemalePosesPageState extends State<FemalePosesPage> {
+  late final PoseImageRepository _poseImageRepository;
   late final PoseRepository _poseRepository;
   final List<Pose> _poses = [];
   final ScrollController _scrollController = ScrollController();
@@ -28,9 +31,8 @@ class _FemalePosesPageState extends State<FemalePosesPage> {
   @override
   void initState() {
     super.initState();
-    _poseRepository = PoseRepository(
-      apiService: PoseApiService(baseUrl: 'http://10.239.85.112:8000'),
-    );
+    _poseRepository = PoseRepository(apiService: PoseApiService());
+    _poseImageRepository = PoseImageRepository(apiService: PoseImageApiService());
     _fetchMore();
     _scrollController.addListener(_onScroll);
   }
@@ -88,12 +90,13 @@ class _FemalePosesPageState extends State<FemalePosesPage> {
           'Female Poses',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
+        centerTitle: true,
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.search, color: Colors.black),
+        //     onPressed: () {},
+        //   ),
+        // ],
       ),
       body: Column(
         children: [
@@ -142,12 +145,40 @@ class _FemalePosesPageState extends State<FemalePosesPage> {
                           final base64Str = pose.poseImageBase64!.split(',').last;
                           imageWidget = Image.memory(base64Decode(base64Str), fit: BoxFit.cover);
                         } else {
-                          final imageUrl = 'http://<your-server-ip>:8000/static/${pose.poseImage}';
+                          final imageUrl = 'http://10.239.85.112:8000/static/${pose.poseImage}';
                           imageWidget = Image.network(imageUrl, fit: BoxFit.cover);
                         }
-                        return ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: imageWidget,
+                        String? base64Image;
+                        if (pose.poseImageBase64 != null &&
+                            pose.poseImageBase64!.startsWith('data:image')) {
+                          final base64Str = pose.poseImageBase64!.split(',').last;
+                          base64Image = base64Str;
+                          imageWidget = Image.memory(base64Decode(base64Str), fit: BoxFit.cover);
+                        }
+                        return GestureDetector(
+                          onTap: () async {
+                            String? fetchedBase64;
+                            if (pose.poseImage.isNotEmpty) {
+                              fetchedBase64 = await _poseImageRepository.getPoseImageBase64(
+                                pose.poseId,
+                              );
+                            }
+                            context.push(
+                              '/preview-pose',
+                              extra: {
+                                'base64Image': fetchedBase64,
+                                'gender': 'female',
+                                'pose_id': pose.poseId.toString(),
+                                'description': pose.description,
+                                'scene_tag': pose.sceneTag,
+                                'lighting_tag': pose.lightingTag,
+                              },
+                            );
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: imageWidget,
+                          ),
                         );
                       },
                     ),
@@ -160,7 +191,7 @@ class _FemalePosesPageState extends State<FemalePosesPage> {
           BottomNavItem(iconPath: 'assets/icons/home-outlined-icon.png', label: 'Home'),
           BottomNavItem(iconPath: 'assets/icons/gallery-outlined-icon.png', label: 'Gallery'),
           BottomNavItem(iconPath: 'assets/icons/camera.png', label: 'Camera'),
-          BottomNavItem(iconPath: 'assets/icons/favourites-outlined-icon.png', label: 'Favorites'),
+          BottomNavItem(iconPath: 'assets/icons/favourites-outlined-icon.png', label: 'Favourites'),
           BottomNavItem(iconPath: 'assets/icons/profile-outlined-icon.png', label: 'Profile'),
         ],
         currentIndex: 0,
@@ -170,13 +201,13 @@ class _FemalePosesPageState extends State<FemalePosesPage> {
               context.go(RouteNames.home);
               break;
             case 1:
-              // Navigate to Gallery
+             context.go(RouteNames.gallery);
               break;
             case 2:
               context.go(RouteNames.uploadBackground);
               break;
             case 3:
-              // Navigate to Favorites
+              context.go(RouteNames.favourites);
               break;
             case 4:
               context.go(RouteNames.profile);
