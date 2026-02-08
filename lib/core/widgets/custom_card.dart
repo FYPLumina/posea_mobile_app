@@ -71,7 +71,7 @@ class CustomCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
-                      color: Colors.grey,
+                      color: Color.fromARGB(255, 236, 236, 236),
                     ),
                   ),
                 ],
