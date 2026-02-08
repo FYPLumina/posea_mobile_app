@@ -4,6 +4,7 @@ import 'package:posea_mobile_app/features/auth/presentation/pages/forgot_passwor
 import 'package:posea_mobile_app/features/auth/presentation/pages/login_page.dart';
 import 'package:posea_mobile_app/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:posea_mobile_app/features/background/upload_background_screen.dart';
+import 'package:posea_mobile_app/features/favourites/presentation/pages/favourites_page.dart';
 import 'package:posea_mobile_app/features/gallery/presentation/pages/gallery_page.dart';
 import 'package:posea_mobile_app/features/home/presentation/pages/home_page.dart';
 import 'package:posea_mobile_app/features/poses/presentation/pages/female_poses_page.dart';
@@ -131,7 +132,7 @@ class AppRouter {
         name: RouteNames.favourites,
         builder: (context, state) {
           // Lazy load the favourites screen
-          return const Scaffold(body: Center(child: Text('Favourites Screen - Coming Soon')));
+          return const FavouritesPage();
         },
       ),
       // Add more routes here as you create features
