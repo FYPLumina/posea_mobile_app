@@ -13,7 +13,8 @@ class CustomButton extends StatelessWidget {
     this.height = 50,
   });
 
-  final VoidCallback onPressed;
+  /// Accepts either VoidCallback or Future<void> Function()
+  final dynamic onPressed;
   final String label;
   final double width;
   final Color backgroundColor;
@@ -24,12 +25,20 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void handlePressed() {
+      final result = onPressed?.call();
+      if (result is Future) {
+        // ignore: discarded_futures
+        result.catchError((_) {});
+      }
+    }
+
     return SizedBox(
       width: width,
       height: height,
       child: isBordered
           ? OutlinedButton(
-              onPressed: onPressed,
+              onPressed: onPressed == null ? null : handlePressed,
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: borderColor ?? Colors.black, width: 1.5),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -40,7 +49,7 @@ class CustomButton extends StatelessWidget {
               ),
             )
           : ElevatedButton(
-              onPressed: onPressed,
+              onPressed: onPressed == null ? null : handlePressed,
               style: ElevatedButton.styleFrom(
                 backgroundColor: backgroundColor,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

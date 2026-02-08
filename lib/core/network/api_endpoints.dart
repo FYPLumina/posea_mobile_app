@@ -1,9 +1,11 @@
+import '../config/app_config.dart';
+
 /// API endpoint constants
 class ApiEndpoints {
   ApiEndpoints._();
 
-  // Base URL - Update this with your actual API base URL
-  static const String baseUrl = 'https://api.yourapp.com/v1';
+  // Base URL - centralized in AppConfig
+  static const String baseUrl = AppConfig.baseUrl;
 
   // Authentication endpoints
   static const String login = '/auth/login';
