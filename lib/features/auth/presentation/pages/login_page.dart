@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:posea_mobile_app/core/routing/route_names.dart';
 import '../../../../core/widgets/index.dart';
 import 'package:provider/provider.dart';
 import '../../application/auth_provider.dart';
@@ -17,7 +18,7 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState?.validate() != true) return;
     final success = await auth.login(_emailController.text.trim(), _passwordController.text);
     if (success) {
-      context.go('/home');
+      context.go(RouteNames.home);
     }
   }
 
