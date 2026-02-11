@@ -71,7 +71,7 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.black),
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                   ),
                   const Text(
                     'Wireframe',

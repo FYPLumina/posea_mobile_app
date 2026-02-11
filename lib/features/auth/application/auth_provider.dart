@@ -182,8 +182,12 @@ class AuthProvider extends ChangeNotifier {
       final res = await api.getProfile(token: _token!);
       if (res['success'] == true && res['data'] != null) {
         _profile = res['data'];
+      } else if (res['error']?.toString().contains('Invalid authentication token') == true) {
+        await logout();
       }
-    } catch (_) {}
+    } catch (e) {
+      // Optionally handle other errors
+    }
     notifyListeners();
   }
 }
