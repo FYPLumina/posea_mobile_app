@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:posea_mobile_app/core/routing/route_names.dart';
 import 'package:posea_mobile_app/features/auth/application/auth_provider.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/widgets/index.dart';
 import 'package:go_router/go_router.dart';
+import 'package:posea_mobile_app/core/utils/app_feedback.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -40,22 +42,15 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                   SizedBox(height: 24),
-                  // Error message
-                  Consumer<AuthProvider>(
-                    builder: (context, auth, _) {
-                      if (auth.error != null && auth.error!.isNotEmpty) {
-                        return Center(
-                          child: Text(auth.error!, style: TextStyle(color: Colors.red)),
-                        );
-                      }
-                      return SizedBox.shrink();
-                    },
-                  ),
                   // Name input
                   CustomTextInputField(
                     controller: _nameController,
                     hintText: 'Enter your name',
                     lable: 'Name',
+                    onChanged: (_) {
+                      final auth = Provider.of<AuthProvider>(context, listen: false);
+                      auth.clearError();
+                    },
                     validator: (value) => value == null || value.isEmpty ? 'Enter your name' : null,
                   ),
                   SizedBox(height: 12),
@@ -64,6 +59,10 @@ class _SignUpPageState extends State<SignUpPage> {
                     controller: _emailController,
                     hintText: 'Enter your email',
                     lable: 'Email',
+                    onChanged: (_) {
+                      final auth = Provider.of<AuthProvider>(context, listen: false);
+                      auth.clearError();
+                    },
                     validator: (value) =>
                         value == null || value.isEmpty ? 'Enter your email' : null,
                   ),
@@ -74,6 +73,10 @@ class _SignUpPageState extends State<SignUpPage> {
                     hintText: 'Enter your password',
                     lable: 'Password',
                     obscureText: true,
+                    onChanged: (_) {
+                      final auth = Provider.of<AuthProvider>(context, listen: false);
+                      auth.clearError();
+                    },
                     validator: (value) =>
                         value == null || value.isEmpty ? 'Enter your password' : null,
                   ),
@@ -84,6 +87,10 @@ class _SignUpPageState extends State<SignUpPage> {
                     hintText: 'Confirm your password',
                     lable: 'Confirm Password',
                     obscureText: true,
+                    onChanged: (_) {
+                      final auth = Provider.of<AuthProvider>(context, listen: false);
+                      auth.clearError();
+                    },
                     validator: (value) =>
                         value == null || value.isEmpty ? 'Confirm your password' : null,
                   ),
@@ -104,15 +111,32 @@ class _SignUpPageState extends State<SignUpPage> {
                                   ).showSnackBar(SnackBar(content: Text('Passwords do not match')));
                                   return;
                                 }
-                                await auth.register(
+                                final success = await auth.register(
                                   _nameController.text.trim(),
                                   _emailController.text.trim(),
                                   _passwordController.text,
                                 );
-                                if (auth.error == null &&
-                                    auth.token != null &&
-                                    auth.loading == false) {
-                                  context.go('/login');
+                                if (success) {
+                                  if (!context.mounted) return;
+                                  await AppFeedback.showSuccessSheet(
+                                    'Account Created',
+                                    'Your account is ready. Tap Done to continue.',
+                                    actionText: 'Done',
+                                    onAction: () async {
+                                      final loginSuccess = await auth.login(
+                                        _emailController.text.trim(),
+                                        _passwordController.text,
+                                      );
+                                      if (!context.mounted) return;
+                                      if (loginSuccess) {
+                                        context.go(RouteNames.home);
+                                      } else if (auth.error != null) {
+                                        AppFeedback.showErrorSheet(auth.error!);
+                                      }
+                                    },
+                                  );
+                                } else if (auth.error != null) {
+                                  AppFeedback.showErrorSheet(auth.error!);
                                 }
                               },
                       );

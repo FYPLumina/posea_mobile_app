@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:posea_mobile_app/core/utils/logger.dart';
+import 'package:posea_mobile_app/core/utils/app_feedback.dart';
 
 class GalleryApiService {
   final String baseUrl;
@@ -18,7 +19,11 @@ class GalleryApiService {
       if (json['success'] == true && json['data'] != null) {
         return List<Map<String, dynamic>>.from(json['data']);
       }
+      final message = json['error']?.toString() ?? 'Failed to load gallery images';
+      AppFeedback.showErrorSheet(message);
+      return [];
     }
+    AppFeedback.showErrorSheet('Failed to load gallery images');
     return [];
   }
 
@@ -40,7 +45,11 @@ class GalleryApiService {
       if (json['success'] == true && json['data'] != null) {
         return json['data']['is_favourite'] == true;
       }
+      final message = json['error']?.toString() ?? 'Failed to update favourite';
+      AppFeedback.showErrorSheet(message);
+      return null;
     }
+    AppFeedback.showErrorSheet('Failed to update favourite');
     return null;
   }
 }

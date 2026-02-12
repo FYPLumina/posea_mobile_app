@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
+import '../utils/app_feedback.dart';
 
 class AuthService {
   final String baseUrl;
@@ -21,6 +22,7 @@ class AuthService {
       await _storage.write(key: 'access_token', value: token);
       return token;
     } else {
+      AppFeedback.showErrorSheet(_parseError(response));
       throw Exception(_parseError(response));
     }
   }
@@ -41,6 +43,7 @@ class AuthService {
       await _storage.write(key: 'access_token', value: token);
       return token;
     } else {
+      AppFeedback.showErrorSheet(_parseError(response));
       throw Exception(_parseError(response));
     }
   }
@@ -52,6 +55,7 @@ class AuthService {
       body: jsonEncode({'email': email}),
     );
     if (response.statusCode != 200) {
+      AppFeedback.showErrorSheet(_parseError(response));
       throw Exception(_parseError(response));
     }
   }
@@ -63,6 +67,7 @@ class AuthService {
       body: jsonEncode({'token': token, 'password': newPassword}),
     );
     if (response.statusCode != 200) {
+      AppFeedback.showErrorSheet(_parseError(response));
       throw Exception(_parseError(response));
     }
   }

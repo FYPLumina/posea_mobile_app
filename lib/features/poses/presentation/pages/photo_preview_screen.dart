@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/core/routing/route_names.dart';
 import 'package:posea_mobile_app/core/utils/logger.dart';
+import 'package:posea_mobile_app/core/utils/app_feedback.dart';
 import 'dart:io';
 import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
 import 'package:posea_mobile_app/features/auth/application/auth_provider.dart';
@@ -135,7 +136,12 @@ class PhotoPreviewScreen extends StatelessWidget {
                           accessToken: accessToken,
                         );
                         if (success) {
-                          context.go(RouteNames.home);
+                          await AppFeedback.showSuccessSheet(
+                            'Image Saved',
+                            'Your captured image has been saved successfully.',
+                            actionText: 'Done',
+                            onAction: () => context.go(RouteNames.home),
+                          );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Failed to save pose image')),

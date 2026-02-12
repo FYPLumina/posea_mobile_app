@@ -29,6 +29,48 @@ Widget buildAccountCreatedSheet({required VoidCallback onGetStarted, VoidCallbac
   );
 }
 
+Widget buildSuccessSheet({
+  required String title,
+  required String description,
+  String actionText = 'OK',
+  required VoidCallback onAction,
+}) {
+  return CommonBottomSheet(
+    icon: const Icon(Icons.check_circle, size: 40, color: Color(0xFF9B8572)),
+    title: title,
+    description: description,
+    buttons: [
+      CommonBottomSheetButton(
+        text: actionText,
+        onPressed: onAction,
+        backgroundColor: const Color(0xFF9B8572),
+        textColor: Colors.white,
+      ),
+    ],
+  );
+}
+
+Widget buildErrorSheet({
+  required String title,
+  required String description,
+  String actionText = 'OK',
+  required VoidCallback onDismiss,
+}) {
+  return CommonBottomSheet(
+    icon: const Icon(Icons.error_outline, size: 40, color: Colors.red),
+    title: title,
+    description: description,
+    buttons: [
+      CommonBottomSheetButton(
+        text: actionText,
+        onPressed: onDismiss,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      ),
+    ],
+  );
+}
+
 class CommonBottomSheetButton {
   final String text;
   final VoidCallback onPressed;
