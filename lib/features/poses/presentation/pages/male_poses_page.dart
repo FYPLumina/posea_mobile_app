@@ -110,7 +110,8 @@ class _MalePosesPageState extends State<MalePosesPage> {
               subtitle: 'Upload the background image',
               backgroundColor: const Color.fromARGB(121, 136, 97, 62),
               iconBackgroundColor: const Color.fromARGB(255, 75, 46, 10),
-              onTap: () {},
+              onTap: () {context.go(RouteNames.uploadBackground);
+              },
             ),
           ),
           Expanded(

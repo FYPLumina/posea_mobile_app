@@ -169,7 +169,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
               context.go(RouteNames.gallery);
               break;
             case 2:
-              context.go(RouteNames.wireframeCamera);
+              context.go(RouteNames.uploadBackground);
               break;
             case 3:
               break;

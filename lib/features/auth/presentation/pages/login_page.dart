@@ -140,15 +140,6 @@ class _LoginPageState extends State<LoginPage> {
                                 textColor: Colors.white,
                               ),
                               const SizedBox(height: 12),
-                              CustomButton(
-                                onPressed: () {},
-                                label: 'Continue as guest',
-                                isBordered: true,
-                                backgroundColor: Colors.white,
-                                textColor: const Color(0xFF9B8572),
-                                borderColor: const Color(0xFF9B8572),
-                              ),
-                              const SizedBox(height: 12),
                               Center(
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
