@@ -46,6 +46,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       final res = await api.register(email: email, password: password, name: name);
       if (res['success'] == true) {
+        _error = null;
         // Optionally auto-login or handle as needed
         return true;
       } else {
@@ -71,6 +72,7 @@ class AuthProvider extends ChangeNotifier {
         _token = res['data']['access_token'];
         await _storage.write(key: 'access_token', value: _token);
         await fetchProfile();
+        _error = null;
         notifyListeners();
         return true;
       } else {
@@ -94,6 +96,7 @@ class AuthProvider extends ChangeNotifier {
       await api.logout(token: _token!);
     } catch (_) {}
     _token = null;
+    _error = null;
     await _storage.delete(key: 'access_token');
     _loading = false;
     notifyListeners();
@@ -113,6 +116,7 @@ class AuthProvider extends ChangeNotifier {
       );
       if (res['success'] == true) {
         await fetchProfile();
+        _error = null;
         return true;
       } else {
         _error = res['error']?.toString() ?? 'Update failed';
@@ -139,6 +143,7 @@ class AuthProvider extends ChangeNotifier {
         newPassword: newPassword,
       );
       if (res['success'] == true) {
+        _error = null;
         return true;
       } else {
         _error = res['error']?.toString() ?? 'Change password failed';
@@ -162,6 +167,7 @@ class AuthProvider extends ChangeNotifier {
       final res = await api.deleteAccount(token: _token!);
       if (res['success'] == true) {
         await logout();
+        _error = null;
         return true;
       } else {
         _error = res['error']?.toString() ?? 'Delete failed';
@@ -188,6 +194,12 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       // Optionally handle other errors
     }
+    notifyListeners();
+  }
+
+  void clearError() {
+    if (_error == null) return;
+    _error = null;
     notifyListeners();
   }
 }

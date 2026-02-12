@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import '../config/app_config.dart';
+import '../utils/app_feedback.dart';
 
 class AuthApi {
   final String baseUrl;
@@ -17,6 +18,7 @@ class AuthApi {
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
     );
     _logger.i('Response: ${response.statusCode} ${response.body}');
+    _handleErrorResponse(response);
     return jsonDecode(response.body);
   }
 
@@ -33,6 +35,7 @@ class AuthApi {
       body: jsonEncode({'email': email, 'password': password, 'name': name}),
     );
     _logger.i('Response: ${response.statusCode} ${response.body}');
+    _handleErrorResponse(response);
     return jsonDecode(response.body);
   }
 
@@ -45,6 +48,7 @@ class AuthApi {
       body: jsonEncode({'email': email, 'password': password}),
     );
     _logger.i('Response: ${response.statusCode} ${response.body}');
+    _handleErrorResponse(response);
     return jsonDecode(response.body);
   }
 
@@ -56,6 +60,7 @@ class AuthApi {
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
     );
     _logger.i('Response: ${response.statusCode} ${response.body}');
+    _handleErrorResponse(response);
     return jsonDecode(response.body);
   }
 
@@ -83,6 +88,7 @@ class AuthApi {
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
     _logger.i('Response: ${response.statusCode} ${response.body}');
+    _handleErrorResponse(response);
     return jsonDecode(response.body);
   }
 
@@ -100,6 +106,7 @@ class AuthApi {
       body: jsonEncode({'old_password': oldPassword, 'new_password': newPassword}),
     );
     _logger.i('Response: ${response.statusCode} ${response.body}');
+    _handleErrorResponse(response);
     return jsonDecode(response.body);
   }
 
@@ -108,6 +115,20 @@ class AuthApi {
       Uri.parse('$baseUrl/'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
     );
+    _handleErrorResponse(response);
     return jsonDecode(response.body);
+  }
+
+  void _handleErrorResponse(http.Response response) {
+    if (response.statusCode < 400) return;
+    try {
+      final data = jsonDecode(response.body);
+      final message = data is Map<String, dynamic>
+          ? (data['error']?.toString() ?? data['message']?.toString() ?? 'Request failed')
+          : 'Request failed';
+      AppFeedback.showErrorSheet(message);
+    } catch (_) {
+      AppFeedback.showErrorSheet('Request failed');
+    }
   }
 }

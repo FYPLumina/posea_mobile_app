@@ -15,13 +15,18 @@ import 'package:posea_mobile_app/features/poses/presentation/pages/wireframe_cam
 import 'package:posea_mobile_app/features/profile/change_password_screen.dart';
 import 'package:posea_mobile_app/features/profile/profile_screens.dart';
 import 'package:posea_mobile_app/features/splash/presentation/pages/splash_screen.dart';
+import 'navigation_service.dart';
 import 'route_names.dart';
 
 /// Main app router configuration
 class AppRouter {
   AppRouter._();
 
+  static final GlobalKey<NavigatorState> rootNavigatorKey =
+      NavigationService.navigatorKey;
+
   static final GoRouter router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: true,
     routes: [

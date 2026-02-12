@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:posea_mobile_app/core/config/app_config.dart';
 import 'package:posea_mobile_app/core/utils/logger.dart';
+import 'package:posea_mobile_app/core/utils/app_feedback.dart';
 import 'package:posea_mobile_app/features/poses/data/models/pose_model.dart';
 
 class PoseImageApiService {
@@ -22,9 +23,11 @@ class PoseImageApiService {
         final json = jsonDecode(response.body);
         return json['success'] == true;
       }
+      AppFeedback.showErrorSheet('Failed to select pose');
       return false;
     } catch (e, st) {
       AppLogger.error('Error selecting pose', e, st);
+      AppFeedback.showErrorSheet('Failed to select pose');
       return false;
     }
   }
@@ -48,10 +51,15 @@ class PoseImageApiService {
           final poses = (json['data']['poses'] as List).map((e) => Pose.fromJson(e)).toList();
           return poses;
         }
+        final message = json['error']?.toString() ?? 'Failed to suggest poses';
+        AppFeedback.showErrorSheet(message);
+        return null;
       }
+      AppFeedback.showErrorSheet('Failed to suggest poses');
       return null;
     } catch (e, st) {
       AppLogger.error('Error suggesting poses', e, st);
+      AppFeedback.showErrorSheet('Failed to suggest poses');
       return null;
     }
   }
@@ -67,10 +75,15 @@ class PoseImageApiService {
         if (json['success'] == true && json['data'] != null) {
           return json['data']['pose_image_base64'] as String?;
         }
+        final message = json['error']?.toString() ?? 'Failed to load pose image';
+        AppFeedback.showErrorSheet(message);
+        return null;
       }
+      AppFeedback.showErrorSheet('Failed to load pose image');
       return null;
     } catch (e, st) {
       AppLogger.error('Error fetching pose image base64', e, st);
+      AppFeedback.showErrorSheet('Failed to load pose image');
       return null;
     }
   }
@@ -98,9 +111,11 @@ class PoseImageApiService {
         final json = jsonDecode(response.body);
         return json['success'] == true;
       }
+      AppFeedback.showErrorSheet('Failed to save pose image');
       return false;
     } catch (e, st) {
       AppLogger.error('Error capturing pose image', e, st);
+      AppFeedback.showErrorSheet('Failed to save pose image');
       return false;
     }
   }

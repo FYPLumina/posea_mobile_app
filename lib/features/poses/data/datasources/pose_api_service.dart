@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:posea_mobile_app/core/config/app_config.dart';
 
 import 'package:posea_mobile_app/core/utils/logger.dart';
+import 'package:posea_mobile_app/core/utils/app_feedback.dart';
 import '../models/pose_model.dart';
 
 class PoseApiService {
@@ -24,10 +25,12 @@ class PoseApiService {
         return PoseListResponse.fromJson(jsonBody);
       } else {
         AppLogger.error('Failed to load poses', response.body);
+        AppFeedback.showErrorSheet('Failed to load poses');
         throw Exception('Failed to load poses');
       }
     } catch (e, stack) {
       AppLogger.error('Exception during fetchPosesByGender', e, stack);
+      AppFeedback.showErrorSheet('Failed to load poses');
       rethrow;
     }
   }

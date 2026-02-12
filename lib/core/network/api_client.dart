@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../errors/exceptions.dart';
 import '../config/app_config.dart';
+import '../utils/app_feedback.dart';
 
 /// HTTP API Client wrapper for handling network requests
 class ApiClient {
@@ -147,16 +148,22 @@ class ApiClient {
     final errorMessage = _extractErrorMessage(response);
 
     if (statusCode == 400) {
+      AppFeedback.showErrorSheet(errorMessage);
       throw ValidationException(errorMessage, code: statusCode.toString());
     } else if (statusCode == 401) {
+      AppFeedback.showErrorSheet(errorMessage);
       throw AuthenticationException(errorMessage, code: statusCode.toString());
     } else if (statusCode == 403) {
+      AppFeedback.showErrorSheet(errorMessage);
       throw AuthorizationException(errorMessage, code: statusCode.toString());
     } else if (statusCode == 404) {
+      AppFeedback.showErrorSheet(errorMessage);
       throw NotFoundException(errorMessage, code: statusCode.toString());
     } else if (statusCode >= 500) {
+      AppFeedback.showErrorSheet(errorMessage);
       throw ServerException(errorMessage, code: statusCode.toString());
     } else {
+      AppFeedback.showErrorSheet('Unexpected error occurred');
       throw ServerException('Unexpected error occurred', code: statusCode.toString());
     }
   }

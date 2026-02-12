@@ -90,6 +90,10 @@ class _LoginPageState extends State<LoginPage> {
                         hintText: 'Enter your Email',
                         keyboardType: TextInputType.emailAddress,
                         controller: _emailController,
+                        onChanged: (_) {
+                          final auth = Provider.of<AuthProvider>(context, listen: false);
+                          auth.clearError();
+                        },
                       ),
                       const SizedBox(height: 16),
                       const Text(
@@ -101,6 +105,10 @@ class _LoginPageState extends State<LoginPage> {
                         hintText: 'Enter your password',
                         obscureText: true,
                         controller: _passwordController,
+                        onChanged: (_) {
+                          final auth = Provider.of<AuthProvider>(context, listen: false);
+                          auth.clearError();
+                        },
                       ),
                       const SizedBox(height: 8),
                       Align(
@@ -122,14 +130,6 @@ class _LoginPageState extends State<LoginPage> {
                           final auth = Provider.of<AuthProvider>(context);
                           return Column(
                             children: [
-                              if (auth.error != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: Text(
-                                    auth.error!,
-                                    style: const TextStyle(color: Colors.red),
-                                  ),
-                                ),
                               CustomButton(
                                 onPressed: auth.loading
                                     ? null
@@ -139,15 +139,6 @@ class _LoginPageState extends State<LoginPage> {
                                 label: auth.loading ? 'Logging in...' : 'Login',
                                 backgroundColor: const Color(0xFF8B6F47),
                                 textColor: Colors.white,
-                              ),
-                              const SizedBox(height: 12),
-                              CustomButton(
-                                onPressed: () {},
-                                label: 'Continue as guest',
-                                isBordered: true,
-                                backgroundColor: Colors.white,
-                                textColor: const Color(0xFF9B8572),
-                                borderColor: const Color(0xFF9B8572),
                               ),
                               const SizedBox(height: 12),
                               Center(

@@ -10,7 +10,9 @@ import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
 import 'package:posea_mobile_app/core/widgets/custom_button.dart';
 import 'package:posea_mobile_app/core/widgets/custom_text_input_field.dart';
 import 'package:posea_mobile_app/core/widgets/settings_options_card.dart';
+import 'package:posea_mobile_app/core/widgets/common_bottom_sheets.dart';
 import 'package:posea_mobile_app/features/auth/application/auth_provider.dart';
+import 'package:posea_mobile_app/core/utils/app_feedback.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -151,36 +153,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.delete_outline,
                       label: 'Delete Account',
                       onTap: () async {
-                        final confirm = await showDialog<bool>(
+                        if (!context.mounted) return;
+                        showModalBottomSheet(
                           context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: Text('Delete Account'),
-                            content: Text('Are you sure you want to delete your account?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(false),
-                                child: Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(true),
-                                child: Text('Delete'),
-                              ),
-                            ],
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                          ),
+                          isScrollControlled: true,
+                          builder: (_) => buildDeleteAccountSheet(
+                            onDelete: () async {
+                              Navigator.of(context).pop();
+                              final success = await auth.deleteAccount();
+                              if (success) {
+                                await AppFeedback.showSuccessSheet(
+                                  'Account Deleted',
+                                  'Your account has been deleted successfully.',
+                                  actionText: 'Sign In',
+                                  onAction: () => context.go(RouteNames.login),
+                                );
+                              } else if (auth.error != null) {
+                                AppFeedback.showErrorSheet(auth.error!);
+                              }
+                            },
+                            onCancel: () => Navigator.of(context).pop(),
                           ),
                         );
-                        if (confirm == true) {
-                          final success = await auth.deleteAccount();
-                          if (success) {
-                            ScaffoldMessenger.of(
-                              context,
-                            ).showSnackBar(SnackBar(content: Text('Account deleted successfully')));
-                            context.go(RouteNames.login);
-                          } else if (auth.error != null) {
-                            ScaffoldMessenger.of(
-                              context,
-                            ).showSnackBar(SnackBar(content: Text(auth.error!)));
-                          }
-                        }
                       },
                     ),
                     SettingsOption(
