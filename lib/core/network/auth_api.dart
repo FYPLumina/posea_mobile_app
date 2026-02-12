@@ -112,7 +112,7 @@ class AuthApi {
 
   Future<Map<String, dynamic>> deleteAccount({required String token}) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/'),
+      Uri.parse('$baseUrl/auth/'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
     );
     _handleErrorResponse(response);

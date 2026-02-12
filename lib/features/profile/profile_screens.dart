@@ -388,11 +388,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              if (auth.error != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(auth.error!, style: const TextStyle(color: Colors.red)),
-                ),
               CustomButton(
                 label: auth.loading ? 'Saving...' : 'Save Changes',
                 onPressed: auth.loading
