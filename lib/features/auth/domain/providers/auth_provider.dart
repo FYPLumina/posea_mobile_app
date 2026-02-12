@@ -14,6 +14,7 @@ class AuthProvider extends ChangeNotifier {
 
   AuthProvider(this.authService);
 
+// Load token from secure storage on initialization
   Future<void> login(String email, String password) async {
     _setLoading(true);
     _error = null;
@@ -28,6 +29,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+// Register a new user with the provided name, email, and password
   Future<void> signUp(String name, String email, String password) async {
     _setLoading(true);
     _error = null;
@@ -42,12 +44,14 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+// Logout the user and clear the token
   Future<void> logout() async {
     await authService.logout();
     _token = null;
     notifyListeners();
   }
 
+// Request a password reset for the given email
   Future<void> requestPasswordReset(String email) async {
     _setLoading(true);
     _error = null;
@@ -62,11 +66,13 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+// Clear any existing error messages
   void clearError() {
     _error = null;
     notifyListeners();
   }
 
+// Private method to update loading state and notify listeners
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();

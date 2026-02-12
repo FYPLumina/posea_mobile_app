@@ -30,41 +30,49 @@ class AppRouter {
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: true,
     routes: [
+      // Define your app routes here
       GoRoute(
         path: RouteNames.splash,
         name: RouteNames.splash,
         builder: (context, state) => const SplashScreen(),
       ),
+      // Authentication routes
       GoRoute(
         path: RouteNames.login,
         name: RouteNames.login,
         builder: (context, state) => const LoginPage(),
       ),
+      // Registration route
       GoRoute(
         path: RouteNames.register,
         name: RouteNames.register,
         builder: (context, state) => SignUpPage(),
       ),
+      // Forgot password route
       GoRoute(
         path: RouteNames.forgotPassword,
         name: RouteNames.forgotPassword,
         builder: (context, state) => const ForgotPasswordPage(),
       ),
+      // Main app routes
       GoRoute(
         path: RouteNames.home,
         name: RouteNames.home,
         builder: (context, state) => const HomePage(),
       ),
+      // male poses routes
       GoRoute(
         path: RouteNames.malePoses,
         name: RouteNames.malePoses,
         builder: (context, state) => const MalePosesPage(),
       ),
+      //female poses routes
       GoRoute(
         path: RouteNames.femalePoses,
         name: RouteNames.femalePoses,
         builder: (context, state) => const FemalePosesPage(),
       ),
+      // Profile routes
       GoRoute(
         path: RouteNames.profile,
         name: RouteNames.profile,
@@ -73,6 +81,7 @@ class AppRouter {
           return const ProfileScreen();
         },
       ),
+      // Edit profile route
       GoRoute(
         path: RouteNames.editProfile,
         name: RouteNames.editProfile,
@@ -81,6 +90,7 @@ class AppRouter {
           return const EditProfileScreen();
         },
       ),
+      // Change password route
       GoRoute(
         path: RouteNames.changePassword,
         name: RouteNames.changePassword,
@@ -89,6 +99,7 @@ class AppRouter {
           return const ChangePasswordScreen();
         },
       ),
+      // Background upload route
       GoRoute(
         path: RouteNames.uploadBackground,
         name: RouteNames.uploadBackground,
@@ -97,6 +108,7 @@ class AppRouter {
           return const UploadBackgroundScreen();
         },
       ),
+      // Pose preview route
       GoRoute(
         path: RouteNames.previewPose,
         name: RouteNames.previewPose,
@@ -105,6 +117,7 @@ class AppRouter {
           return PreviewPoseScreen();
         },
       ),
+      // Wireframe camera route
       GoRoute(
         path: RouteNames.wireframeCamera,
         name: RouteNames.wireframeCamera,
@@ -113,6 +126,7 @@ class AppRouter {
           return const WireframeCameraScreen();
         },
       ),
+      // Photo preview route with parameter
       GoRoute(
         path: RouteNames.photoPreview,
         name: RouteNames.photoPreview,
@@ -124,6 +138,7 @@ class AppRouter {
           return PhotoPreviewScreen(imagePath: imagePath ?? '');
         },
       ),
+      // Gallery route
       GoRoute(
         path: RouteNames.gallery,
         name: RouteNames.gallery,
@@ -132,6 +147,7 @@ class AppRouter {
           return const GalleryPage();
         },
       ),
+      // Favourites route
       GoRoute(
         path: RouteNames.favourites,
         name: RouteNames.favourites,

@@ -19,6 +19,7 @@ class AuthProvider extends ChangeNotifier {
   bool _initializing = true;
   bool get initializing => _initializing;
 
+// User profile data
   Map<String, dynamic>? _profile;
   Map<String, dynamic>? get profile => _profile;
   String get userName => _profile?['name'] ?? '';
@@ -30,6 +31,7 @@ class AuthProvider extends ChangeNotifier {
     _loadToken();
   }
 
+// Load token from secure storage and fetch profile if token exists
   Future<void> _loadToken() async {
     _token = await _storage.read(key: 'access_token');
     if (_token != null) {
@@ -39,6 +41,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+// Register a new user with the provided name, email, and password
   Future<bool> register(String name, String email, String password) async {
     _loading = true;
     _error = null;

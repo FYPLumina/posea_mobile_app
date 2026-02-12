@@ -10,6 +10,7 @@ class AuthApi {
 
   AuthApi([String? baseUrl]) : baseUrl = baseUrl ?? AppConfig.baseUrl;
 
+  //getprofile API endpoint to fetch user profile data, requires authentication token in the header. Returns a map containing user details like name, email, bio, and profile image URL. Handles errors by showing an error sheet with the appropriate message.
   Future<Map<String, dynamic>> getProfile({required String token}) async {
     _logger.i('GET $baseUrl/auth/profile');
     _logger.i('Request headers: {Authorization: Bearer $token}');
@@ -22,6 +23,7 @@ class AuthApi {
     return jsonDecode(response.body);
   }
 
+  //register API endpoint to create a new user account. Accepts email, password, and name as parameters. Sends a POST request with the user details in the request body. Handles errors by showing an error sheet with the appropriate message.
   Future<Map<String, dynamic>> register({
     required String email,
     required String password,
@@ -39,6 +41,7 @@ class AuthApi {
     return jsonDecode(response.body);
   }
 
+  //login API endpoint to authenticate a user and obtain an authentication token. Accepts email and password as parameters. Sends a POST request with the credentials in the request body. Handles errors by showing an error sheet with the appropriate message.
   Future<Map<String, dynamic>> login({required String email, required String password}) async {
     _logger.i('POST $baseUrl/auth/login');
     _logger.i('Request body: {email: $email, password: $password}');
@@ -52,6 +55,7 @@ class AuthApi {
     return jsonDecode(response.body);
   }
 
+  //logout API endpoint to invalidate the user's authentication token. Accepts the authentication token as a parameter. Sends a POST request with the token in the Authorization header. Handles errors by showing an error sheet with the appropriate message.
   Future<Map<String, dynamic>> logout({required String token}) async {
     _logger.i('POST $baseUrl/auth/logout');
     _logger.i('Request headers: {Authorization: Bearer $token}');
@@ -64,6 +68,7 @@ class AuthApi {
     return jsonDecode(response.body);
   }
 
+  //updateProfile API endpoint to update the user's profile information. Accepts the authentication token, name, optional bio, and optional profile image (either as a base64 string or a local file path) as parameters. Sends a PUT request with the updated profile details in multipart/form-data format. Handles errors by showing an error sheet with the appropriate message.
   Future<Map<String, dynamic>> updateProfile({
     required String token,
     required String name,
@@ -92,6 +97,7 @@ class AuthApi {
     return jsonDecode(response.body);
   }
 
+  //change-password API endpoint to change the user's password. Accepts the authentication token, old password, and new password as parameters. Sends a POST request with the old and new passwords in the request body. Handles errors by showing an error sheet with the appropriate message.
   Future<Map<String, dynamic>> changePassword({
     required String token,
     required String oldPassword,
@@ -110,6 +116,7 @@ class AuthApi {
     return jsonDecode(response.body);
   }
 
+  //deleteAccount API endpoint to delete the user's account. Accepts the authentication token as a parameter. Sends a DELETE request with the token in the Authorization header. Handles errors by showing an error sheet with the appropriate message.
   Future<Map<String, dynamic>> deleteAccount({required String token}) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/auth/'),
@@ -119,6 +126,7 @@ class AuthApi {
     return jsonDecode(response.body);
   }
 
+  // Helper method to handle error responses and show appropriate error messages using AppFeedback. If the response status code indicates an error (400 or above), it attempts to parse the error message from the response body and displays it in an error sheet. If parsing fails, it shows a generic error message.
   void _handleErrorResponse(http.Response response) {
     if (response.statusCode < 400) return;
     try {
