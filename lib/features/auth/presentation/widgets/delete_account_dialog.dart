@@ -52,12 +52,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                     });
                   },
                 ),
-                Expanded(
-                  child: Text(
-                    l10n.deleteAccountConfirm,
-                    style: TextStyle(fontSize: 14),
-                  ),
-                ),
+                Expanded(child: Text(l10n.deleteAccountConfirm, style: TextStyle(fontSize: 14))),
               ],
             ),
             const SizedBox(height: 24),

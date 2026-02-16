@@ -122,7 +122,8 @@ class _LoginPageState extends State<LoginPage> {
                         hintText: l10n.enterYourPassword,
                         obscureText: true,
                         controller: _passwordController,
-                        validator: (value) => Validators.validateRequired(value, label: l10n.password),
+                        validator: (value) =>
+                            Validators.validateRequired(value, label: l10n.password),
                         onChanged: (_) {
                           final auth = Provider.of<AuthProvider>(context, listen: false);
                           auth.clearError();
@@ -154,9 +155,7 @@ class _LoginPageState extends State<LoginPage> {
                                     : () async {
                                         await _handleLogin(auth);
                                       },
-                                label: auth.loading
-                                  ? l10n.loggingIn
-                                  : l10n.login,
+                                label: auth.loading ? l10n.loggingIn : l10n.login,
                                 backgroundColor: const Color(0xFF8B6F47),
                                 textColor: Colors.white,
                               ),

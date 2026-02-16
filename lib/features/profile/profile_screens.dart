@@ -330,13 +330,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           bottomNavigationBar: CustomBottomNavigation(
             items: [
               BottomNavItem(iconPath: 'assets/icons/home-outlined-icon.png', label: l10n.home),
-              BottomNavItem(iconPath: 'assets/icons/gallery-outlined-icon.png', label: l10n.gallery),
+              BottomNavItem(
+                iconPath: 'assets/icons/gallery-outlined-icon.png',
+                label: l10n.gallery,
+              ),
               BottomNavItem(iconPath: 'assets/icons/camera.png', label: l10n.camera),
               BottomNavItem(
                 iconPath: 'assets/icons/favourites-outlined-icon.png',
                 label: l10n.favourites,
               ),
-              BottomNavItem(iconPath: 'assets/icons/profile-outlined-icon.png', label: l10n.profile),
+              BottomNavItem(
+                iconPath: 'assets/icons/profile-outlined-icon.png',
+                label: l10n.profile,
+              ),
             ],
             currentIndex: 4,
             onItemTapped: (index) {
@@ -670,7 +676,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           BottomNavItem(iconPath: 'assets/icons/home-outlined-icon.png', label: l10n.home),
           BottomNavItem(iconPath: 'assets/icons/gallery-outlined-icon.png', label: l10n.gallery),
           BottomNavItem(iconPath: 'assets/icons/camera.png', label: l10n.camera),
-          BottomNavItem(iconPath: 'assets/icons/favourites-outlined-icon.png', label: l10n.favorites),
+          BottomNavItem(
+            iconPath: 'assets/icons/favourites-outlined-icon.png',
+            label: l10n.favorites,
+          ),
           BottomNavItem(iconPath: 'assets/icons/profile-outlined-icon.png', label: l10n.profile),
         ],
         currentIndex: 4,

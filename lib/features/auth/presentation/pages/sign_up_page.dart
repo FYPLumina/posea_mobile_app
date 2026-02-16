@@ -105,10 +105,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   validator: Validators.validatePassword,
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  l10n.useAtLeast8,
-                  style: TextStyle(fontSize: 14, color: Colors.black54),
-                ),
+                Text(l10n.useAtLeast8, style: TextStyle(fontSize: 14, color: Colors.black54)),
                 SizedBox(height: 12),
                 // Confirm password input
                 CustomTextInputField(
