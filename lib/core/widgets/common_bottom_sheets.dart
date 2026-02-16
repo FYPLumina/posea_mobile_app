@@ -212,3 +212,26 @@ Widget buildDeleteAccountSheet({required VoidCallback onDelete, required VoidCal
     ],
   );
 }
+
+Widget buildLogoutSheet({required VoidCallback onLogout, required VoidCallback onCancel}) {
+  return CommonBottomSheet(
+    icon: const Icon(Icons.error_outline, size: 40, color: Colors.black),
+    title: 'Log Out',
+    description: 'Are you sure you want to log out?',
+    buttons: [
+      CommonBottomSheetButton(
+        text: 'Log Out',
+        onPressed: onLogout,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      ),
+      CommonBottomSheetButton(
+        text: 'Cancel',
+        onPressed: onCancel,
+        isOutlined: true,
+        borderColor: Colors.black26,
+        textColor: Colors.black54,
+      ),
+    ],
+  );
+}

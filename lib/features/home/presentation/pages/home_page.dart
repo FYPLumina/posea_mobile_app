@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:posea_mobile_app/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:posea_mobile_app/features/home/application/pose_of_the_day_provider.dart';
 import 'package:posea_mobile_app/features/poses/data/datasources/pose_image_api_service.dart';
@@ -17,6 +18,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<PoseOfTheDayProvider>(
@@ -45,7 +47,7 @@ class HomePage extends StatelessWidget {
                     children: [
                       Expanded(
                         child: QuickLinkCard(
-                          title: 'Male Poses',
+                          title: l10n.malePoses,
                           image: 'assets/images/male-pose-sample.png',
                           onTap: () {
                             context.go(RouteNames.malePoses);
@@ -54,7 +56,7 @@ class HomePage extends StatelessWidget {
                       ),
                       Expanded(
                         child: QuickLinkCard(
-                          title: 'Female Poses',
+                          title: l10n.femalePoses,
                           image: 'assets/images/female-pose-sample.png',
                           onTap: () {
                             context.go(RouteNames.femalePoses);
@@ -77,14 +79,14 @@ class HomePage extends StatelessWidget {
         ),
         bottomNavigationBar: CustomBottomNavigation(
           items: [
-            BottomNavItem(iconPath: 'assets/icons/home-outlined-icon.png', label: 'Home'),
-            BottomNavItem(iconPath: 'assets/icons/gallery-outlined-icon.png', label: 'Gallery'),
-            BottomNavItem(iconPath: 'assets/icons/camera.png', label: 'Camera'),
+            BottomNavItem(iconPath: 'assets/icons/home-outlined-icon.png', label: l10n.home),
+            BottomNavItem(iconPath: 'assets/icons/gallery-outlined-icon.png', label: l10n.gallery),
+            BottomNavItem(iconPath: 'assets/icons/camera.png', label: l10n.camera),
             BottomNavItem(
               iconPath: 'assets/icons/favourites-outlined-icon.png',
-              label: 'Favourites',
+              label: l10n.favourites,
             ),
-            BottomNavItem(iconPath: 'assets/icons/profile-outlined-icon.png', label: 'Profile'),
+            BottomNavItem(iconPath: 'assets/icons/profile-outlined-icon.png', label: l10n.profile),
           ],
           currentIndex: 0,
           onItemTapped: (index) {

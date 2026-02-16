@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:posea_mobile_app/features/auth/presentation/pages/login_page.dart';
+import 'package:posea_mobile_app/features/auth/presentation/pages/reset_password_page.dart';
 import 'package:posea_mobile_app/features/auth/presentation/pages/sign_up_page.dart';
+import 'package:posea_mobile_app/features/auth/presentation/pages/verification_pending_page.dart';
+import 'package:posea_mobile_app/features/auth/presentation/pages/verify_email_page.dart';
 import 'package:posea_mobile_app/features/background/upload_background_screen.dart';
 import 'package:posea_mobile_app/features/favourites/presentation/pages/favourites_page.dart';
 import 'package:posea_mobile_app/features/gallery/presentation/pages/gallery_page.dart';
@@ -22,8 +25,7 @@ import 'route_names.dart';
 class AppRouter {
   AppRouter._();
 
-  static final GlobalKey<NavigatorState> rootNavigatorKey =
-      NavigationService.navigatorKey;
+  static final GlobalKey<NavigatorState> rootNavigatorKey = NavigationService.navigatorKey;
 
   static final GoRouter router = GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -53,6 +55,26 @@ class AppRouter {
         path: RouteNames.forgotPassword,
         name: RouteNames.forgotPassword,
         builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: RouteNames.resetPassword,
+        name: RouteNames.resetPassword,
+        builder: (context, state) =>
+            ResetPasswordPage(initialToken: state.uri.queryParameters['token']),
+      ),
+      GoRoute(
+        path: RouteNames.verificationPending,
+        name: RouteNames.verificationPending,
+        builder: (context, state) =>
+            VerificationPendingPage(initialEmail: state.uri.queryParameters['email']),
+      ),
+      GoRoute(
+        path: RouteNames.verifyEmail,
+        name: RouteNames.verifyEmail,
+        builder: (context, state) => VerifyEmailPage(
+          initialToken: state.uri.queryParameters['token'],
+          initialEmail: state.uri.queryParameters['email'],
+        ),
       ),
       // Main app routes
       GoRoute(

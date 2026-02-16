@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:posea_mobile_app/l10n/app_localizations.dart';
 
 class DeleteAccountDialog extends StatefulWidget {
   final VoidCallback onDelete;
@@ -16,6 +17,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -29,13 +31,13 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
               child: Icon(Icons.delete_outline, color: Colors.black, size: 40),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Delete Account?',
+            Text(
+              l10n.deleteAccountQuestion,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'This action is permanent.\nAll your photos, settings, and profile data will be erased forever.',
+            Text(
+              l10n.deleteAccountDescription,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
@@ -50,9 +52,9 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                     });
                   },
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'I understand that my data cannot be recovered.',
+                    l10n.deleteAccountConfirm,
                     style: TextStyle(fontSize: 14),
                   ),
                 ),
@@ -68,8 +70,8 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 onPressed: _confirmed ? widget.onDelete : null,
-                child: const Text(
-                  'Delete Account',
+                child: Text(
+                  l10n.deleteAccount,
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
@@ -84,7 +86,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 onPressed: widget.onCancel,
-                child: const Text('Cancel', style: TextStyle(color: Colors.black, fontSize: 16)),
+                child: Text(l10n.cancel, style: TextStyle(color: Colors.black, fontSize: 16)),
               ),
             ),
           ],

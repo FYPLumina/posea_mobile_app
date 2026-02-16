@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -10,10 +11,63 @@ class ApiClient {
   final http.Client _client;
   final String baseUrl;
   final Duration timeout;
+  final int maxRetries;
+  final Duration retryDelay;
 
-  ApiClient({http.Client? client, String? baseUrl, this.timeout = const Duration(seconds: 30)})
-    : baseUrl = baseUrl ?? AppConfig.baseUrl,
-      _client = client ?? http.Client();
+  ApiClient({
+    http.Client? client,
+    String? baseUrl,
+    this.timeout = const Duration(seconds: 30),
+    this.maxRetries = 3,
+    this.retryDelay = const Duration(milliseconds: 500),
+  }) : baseUrl = baseUrl ?? AppConfig.baseUrl,
+       _client = client ?? http.Client();
+
+  /// Executes a raw HTTP request with retry and timeout handling.
+  Future<http.Response> sendRaw(Future<http.Response> Function() request) async {
+    Exception? lastException;
+
+    for (var attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        final response = await request().timeout(timeout);
+        if (_shouldRetryStatusCode(response.statusCode) && attempt < maxRetries) {
+          await Future.delayed(_retryDelayForAttempt(attempt));
+          continue;
+        }
+        return response;
+      } on SocketException catch (error) {
+        lastException = error;
+        if (attempt >= maxRetries) {
+          throw const NetworkException('No internet connection');
+        }
+      } on http.ClientException catch (error) {
+        lastException = error;
+        if (attempt >= maxRetries) {
+          throw const NetworkException('Network error occurred');
+        }
+      } on TimeoutException catch (error) {
+        lastException = error;
+        if (attempt >= maxRetries) {
+          throw const TimeoutException('Request timeout');
+        }
+      }
+
+      if (attempt < maxRetries) {
+        await Future.delayed(_retryDelayForAttempt(attempt));
+      }
+    }
+
+    if (lastException is SocketException) {
+      throw const NetworkException('No internet connection');
+    }
+    if (lastException is http.ClientException) {
+      throw const NetworkException('Network error occurred');
+    }
+    if (lastException is TimeoutException) {
+      throw const TimeoutException('Request timeout');
+    }
+    throw const NetworkException('Network error occurred');
+  }
 
   /// GET request
   Future<dynamic> get(
@@ -21,17 +75,9 @@ class ApiClient {
     Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
   }) async {
-    try {
-      final uri = _buildUri(endpoint, queryParameters);
-      final response = await _client.get(uri, headers: headers).timeout(timeout);
-      return _handleResponse(response);
-    } on SocketException {
-      throw const NetworkException('No internet connection');
-    } on http.ClientException {
-      throw const NetworkException('Network error occurred');
-    } on TimeoutException {
-      throw const TimeoutException('Request timeout');
-    }
+    final uri = _buildUri(endpoint, queryParameters);
+    final response = await sendRaw(() => _client.get(uri, headers: headers));
+    return _handleResponse(response);
   }
 
   /// POST request
@@ -41,19 +87,15 @@ class ApiClient {
     dynamic body,
     Map<String, dynamic>? queryParameters,
   }) async {
-    try {
-      final uri = _buildUri(endpoint, queryParameters);
-      final response = await _client
-          .post(uri, headers: _buildHeaders(headers), body: body != null ? jsonEncode(body) : null)
-          .timeout(timeout);
-      return _handleResponse(response);
-    } on SocketException {
-      throw const NetworkException('No internet connection');
-    } on http.ClientException {
-      throw const NetworkException('Network error occurred');
-    } on TimeoutException {
-      throw const TimeoutException('Request timeout');
-    }
+    final uri = _buildUri(endpoint, queryParameters);
+    final response = await sendRaw(
+      () => _client.post(
+        uri,
+        headers: _buildHeaders(headers),
+        body: body != null ? jsonEncode(body) : null,
+      ),
+    );
+    return _handleResponse(response);
   }
 
   /// PUT request
@@ -63,19 +105,15 @@ class ApiClient {
     dynamic body,
     Map<String, dynamic>? queryParameters,
   }) async {
-    try {
-      final uri = _buildUri(endpoint, queryParameters);
-      final response = await _client
-          .put(uri, headers: _buildHeaders(headers), body: body != null ? jsonEncode(body) : null)
-          .timeout(timeout);
-      return _handleResponse(response);
-    } on SocketException {
-      throw const NetworkException('No internet connection');
-    } on http.ClientException {
-      throw const NetworkException('Network error occurred');
-    } on TimeoutException {
-      throw const TimeoutException('Request timeout');
-    }
+    final uri = _buildUri(endpoint, queryParameters);
+    final response = await sendRaw(
+      () => _client.put(
+        uri,
+        headers: _buildHeaders(headers),
+        body: body != null ? jsonEncode(body) : null,
+      ),
+    );
+    return _handleResponse(response);
   }
 
   /// PATCH request
@@ -85,19 +123,15 @@ class ApiClient {
     dynamic body,
     Map<String, dynamic>? queryParameters,
   }) async {
-    try {
-      final uri = _buildUri(endpoint, queryParameters);
-      final response = await _client
-          .patch(uri, headers: _buildHeaders(headers), body: body != null ? jsonEncode(body) : null)
-          .timeout(timeout);
-      return _handleResponse(response);
-    } on SocketException {
-      throw const NetworkException('No internet connection');
-    } on http.ClientException {
-      throw const NetworkException('Network error occurred');
-    } on TimeoutException {
-      throw const TimeoutException('Request timeout');
-    }
+    final uri = _buildUri(endpoint, queryParameters);
+    final response = await sendRaw(
+      () => _client.patch(
+        uri,
+        headers: _buildHeaders(headers),
+        body: body != null ? jsonEncode(body) : null,
+      ),
+    );
+    return _handleResponse(response);
   }
 
   /// DELETE request
@@ -106,17 +140,18 @@ class ApiClient {
     Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
   }) async {
-    try {
-      final uri = _buildUri(endpoint, queryParameters);
-      final response = await _client.delete(uri, headers: headers).timeout(timeout);
-      return _handleResponse(response);
-    } on SocketException {
-      throw const NetworkException('No internet connection');
-    } on http.ClientException {
-      throw const NetworkException('Network error occurred');
-    } on TimeoutException {
-      throw const TimeoutException('Request timeout');
-    }
+    final uri = _buildUri(endpoint, queryParameters);
+    final response = await sendRaw(() => _client.delete(uri, headers: headers));
+    return _handleResponse(response);
+  }
+
+  bool _shouldRetryStatusCode(int statusCode) {
+    return statusCode == 429 || statusCode >= 500;
+  }
+
+  Duration _retryDelayForAttempt(int attempt) {
+    final multiplier = 1 << (attempt - 1);
+    return Duration(milliseconds: retryDelay.inMilliseconds * multiplier);
   }
 
   /// Build URI with query parameters

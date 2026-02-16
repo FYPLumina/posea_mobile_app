@@ -16,6 +16,7 @@ import 'package:posea_mobile_app/core/routing/route_names.dart';
 import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
 import 'package:posea_mobile_app/core/theme/app_colors.dart';
 import 'package:posea_mobile_app/core/theme/app_text_styles.dart';
+import 'package:posea_mobile_app/core/utils/app_feedback.dart';
 
 class GalleryPage extends StatefulWidget {
   const GalleryPage({Key? key}) : super(key: key);
@@ -208,9 +209,7 @@ class _GalleryPageState extends State<GalleryPage> {
                             ], text: 'Check out this image!');
                           } catch (e) {
                             print('Share error: $e');
-                            ScaffoldMessenger.of(
-                              context,
-                            ).showSnackBar(SnackBar(content: Text('Failed to share image.')));
+                            await AppFeedback.showErrorSheet('Failed to share image.');
                           }
                         },
                         iconSize: 22,
@@ -237,17 +236,16 @@ class _GalleryPageState extends State<GalleryPage> {
                               name: 'posea_image_${img.capImageId}',
                             );
                             if (result['isSuccess'] == true || result['isSuccess'] == 1) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Image saved to gallery.')),
+                              await AppFeedback.showSuccessSheet(
+                                'Saved',
+                                'Image saved to gallery.',
                               );
                             } else {
                               throw Exception('Save failed');
                             }
                           } catch (e) {
                             print('Save error: $e');
-                            ScaffoldMessenger.of(
-                              context,
-                            ).showSnackBar(const SnackBar(content: Text('Failed to save image.')));
+                            await AppFeedback.showErrorSheet('Failed to save image.');
                           }
                         },
                         iconSize: 22,

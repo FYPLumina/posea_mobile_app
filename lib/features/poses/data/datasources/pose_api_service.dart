@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:posea_mobile_app/core/config/app_config.dart';
+import 'package:posea_mobile_app/core/network/api_client.dart';
 
 import 'package:posea_mobile_app/core/utils/logger.dart';
 import 'package:posea_mobile_app/core/utils/app_feedback.dart';
@@ -8,6 +9,10 @@ import '../models/pose_model.dart';
 
 class PoseApiService {
   final String baseUrl;
+  ApiClient? _apiClient;
+
+  ApiClient get _client => _apiClient ??= ApiClient(baseUrl: baseUrl);
+
   PoseApiService([String? baseUrl]) : baseUrl = baseUrl ?? AppConfig.baseUrl;
 
   Future<PoseListResponse> fetchPosesByGender(
@@ -18,7 +23,7 @@ class PoseApiService {
     final uri = Uri.parse('$baseUrl/pose/list?gender=$gender&limit=$limit&offset=$offset');
     AppLogger.info('GET $uri');
     try {
-      final response = await http.get(uri);
+      final response = await _client.sendRaw(() => http.get(uri));
       AppLogger.debug('Response: \\${response.statusCode} \\${response.body}');
       if (response.statusCode == 200) {
         final jsonBody = json.decode(response.body);

@@ -3,5 +3,5 @@ class AppConfig {
   AppConfig._();
 
   /// Base URL for all API requests
-  static const String baseUrl = 'http://10.40.11.178:8000/api'; // Update as needed
+  static const String baseUrl = 'http://192.168.8.179:8000/api'; // Update as needed
 }

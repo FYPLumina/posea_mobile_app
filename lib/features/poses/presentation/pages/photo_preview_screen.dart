@@ -110,9 +110,7 @@ class PhotoPreviewScreen extends StatelessWidget {
                             isFavourite.toString(),
                       );
                       if (poseId.isEmpty) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(const SnackBar(content: Text('Missing pose_id')));
+                        await AppFeedback.showErrorSheet('Missing pose_id');
                         return;
                       }
                       // Encode image file to base64
@@ -123,9 +121,7 @@ class PhotoPreviewScreen extends StatelessWidget {
                         final authProvider = Provider.of<AuthProvider>(context, listen: false);
                         final accessToken = authProvider.token;
                         if (accessToken == null) {
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(const SnackBar(content: Text('Missing access token')));
+                          await AppFeedback.showErrorSheet('Missing access token');
                           return;
                         }
                         final poseRepo = PoseImageRepository(apiService: PoseImageApiService());
@@ -143,14 +139,10 @@ class PhotoPreviewScreen extends StatelessWidget {
                             onAction: () => context.go(RouteNames.home),
                           );
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Failed to save pose image')),
-                          );
+                          await AppFeedback.showErrorSheet('Failed to save pose image');
                         }
                       } catch (e) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                        await AppFeedback.showErrorSheet('Error: $e');
                       }
                     },
                     child: const Text(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:posea_mobile_app/l10n/app_localizations.dart';
 
 class LogoutDialog extends StatelessWidget {
   final VoidCallback onLogout;
@@ -8,6 +9,7 @@ class LogoutDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -21,10 +23,10 @@ class LogoutDialog extends StatelessWidget {
               child: Icon(Icons.logout, color: Colors.brown, size: 40),
             ),
             const SizedBox(height: 24),
-            const Text('Log Out?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(l10n.logOutQuestion, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            const Text(
-              'Are you sure you want to sign out?\nYou\'ll need to enter your credentials to log back in.',
+            Text(
+              l10n.logOutDescription,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
@@ -38,7 +40,7 @@ class LogoutDialog extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 onPressed: onLogout,
-                child: const Text('Logout', style: TextStyle(color: Colors.white, fontSize: 16)),
+                child: Text(l10n.logOut, style: TextStyle(color: Colors.white, fontSize: 16)),
               ),
             ),
             const SizedBox(height: 12),
@@ -50,7 +52,7 @@ class LogoutDialog extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 onPressed: onCancel,
-                child: const Text('Cancel', style: TextStyle(color: Colors.brown, fontSize: 16)),
+                child: Text(l10n.cancel, style: TextStyle(color: Colors.brown, fontSize: 16)),
               ),
             ),
           ],

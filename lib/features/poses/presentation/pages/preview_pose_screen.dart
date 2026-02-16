@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:posea_mobile_app/core/routing/app_router.dart';
 import 'package:posea_mobile_app/core/routing/route_names.dart';
+import 'package:posea_mobile_app/core/utils/app_feedback.dart';
 import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
 import 'dart:convert';
 
@@ -87,14 +87,10 @@ class PreviewPoseScreen extends StatelessWidget {
                     extra: {'skeletonData': skeletonData, 'pose_id': poseId, 'is_favourite': false},
                   );
                 } else {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('Failed to update pose')));
+                  await AppFeedback.showErrorSheet('Failed to update pose');
                 }
               } else {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Missing pose_id or access token')));
+                await AppFeedback.showErrorSheet('Missing pose_id or access token');
               }
             },
           ),

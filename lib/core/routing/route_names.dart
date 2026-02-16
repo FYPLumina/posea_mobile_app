@@ -18,6 +18,9 @@ class RouteNames {
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
+  static const String resetPassword = '/reset-password';
+  static const String verificationPending = '/verification-pending';
+  static const String verifyEmail = '/verify-email';
 
   // Profile routes
   static const String profile = '/profile';

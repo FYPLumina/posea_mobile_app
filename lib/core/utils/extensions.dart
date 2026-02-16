@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:posea_mobile_app/core/utils/app_feedback.dart';
 
 // ===== String Extensions =====
 extension StringExtensions on String {
@@ -138,21 +139,17 @@ extension BuildContextExtensions on BuildContext {
 
   /// Show snackbar
   void showSnackBar(String message, {Duration duration = const Duration(seconds: 2)}) {
-    ScaffoldMessenger.of(this).showSnackBar(SnackBar(content: Text(message), duration: duration));
+    AppFeedback.showSuccessSheet('Notice', message);
   }
 
   /// Show error snackbar
   void showErrorSnackBar(String message, {Duration duration = const Duration(seconds: 3)}) {
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: colorScheme.error, duration: duration),
-    );
+    AppFeedback.showErrorSheet(message);
   }
 
   /// Show success snackbar
   void showSuccessSnackBar(String message, {Duration duration = const Duration(seconds: 2)}) {
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green, duration: duration),
-    );
+    AppFeedback.showSuccessSheet('Success', message);
   }
 
   /// Pop navigation
