@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:posea_mobile_app/features/poses/data/models/pose_model.dart';
 import 'package:posea_mobile_app/features/poses/data/datasources/pose_image_api_service.dart';
 import 'package:posea_mobile_app/features/auth/application/auth_provider.dart';
@@ -33,8 +30,7 @@ class PoseOfTheDayProvider extends ChangeNotifier {
         notifyListeners();
         return;
       }
-      final url = Uri.parse('${apiService.baseUrl}/pose/pose_of_the_day');
-      final response = await apiService._getPoseOfTheDay(url, token);
+      final response = await apiService.getPoseOfTheDay(accessToken: token);
       if (response['success'] == true && response['data'] != null) {
         _pose = Pose.fromJson(response['data']);
       } else {
@@ -47,12 +43,5 @@ class PoseOfTheDayProvider extends ChangeNotifier {
     }
     _loading = false;
     notifyListeners();
-  }
-}
-
-extension on PoseImageApiService {
-  Future<Map<String, dynamic>> _getPoseOfTheDay(Uri url, String token) async {
-    final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
-    return jsonDecode(response.body) as Map<String, dynamic>;
   }
 }

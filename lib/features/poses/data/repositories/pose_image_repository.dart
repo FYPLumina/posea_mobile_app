@@ -5,7 +5,7 @@ class PoseImageRepository {
   final PoseImageApiService apiService;
   PoseImageRepository({required this.apiService});
 
-  Future<bool> selectPose({required String poseId, required String accessToken}) async {
+  Future<SelectPoseResult> selectPose({required String poseId, required String accessToken}) async {
     return await apiService.selectPose(poseId: poseId, accessToken: accessToken);
   }
 

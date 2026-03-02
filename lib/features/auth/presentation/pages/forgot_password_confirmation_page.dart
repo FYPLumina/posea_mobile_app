@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:posea_mobile_app/l10n/app_localizations.dart';
 
 class ForgotPasswordConfirmationPage extends StatelessWidget {
   const ForgotPasswordConfirmationPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
@@ -15,8 +17,8 @@ class ForgotPasswordConfirmationPage extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 32),
-              const Text(
-                'Reset link sent!',
+              Text(
+                l10n.resetLinkSent,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -24,8 +26,8 @@ class ForgotPasswordConfirmationPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
-                "we've sent a password reset link to your email address, please check your inbox and spam folder to proceed",
+              Text(
+                l10n.resetLinkSentLongDescription,
                 style: TextStyle(fontSize: 13, color: Colors.black54),
                 textAlign: TextAlign.center,
               ),
@@ -42,7 +44,7 @@ class ForgotPasswordConfirmationPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: const Text('Sign In', style: TextStyle(fontSize: 16)),
+                  child: Text(l10n.signIn, style: const TextStyle(fontSize: 16)),
                 ),
               ),
               const SizedBox(height: 12),
@@ -50,14 +52,14 @@ class ForgotPasswordConfirmationPage extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      "Didn't received the link. ",
+                    Text(
+                      l10n.didntReceiveLink,
                       style: TextStyle(fontSize: 13, color: Colors.black54),
                     ),
                     GestureDetector(
                       onTap: () {},
-                      child: const Text(
-                        'Resend',
+                      child: Text(
+                        l10n.resend,
                         style: TextStyle(
                           fontSize: 13,
                           color: Color(0xFF8B6F47),

@@ -1,5 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math' as math;
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/core/utils/logger.dart';
 
@@ -16,6 +22,27 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
   List<CameraDescription>? _cameras;
   bool _isCameraReady = false;
 
+  final PoseDetector _poseDetector = PoseDetector(
+    options: PoseDetectorOptions(mode: PoseDetectionMode.stream),
+  );
+  bool _isProcessingFrame = false;
+  bool _didLoadArgs = false;
+
+  String? _skeletonData;
+  String _poseIdLog = '';
+  bool _isFavouriteLog = false;
+
+  Map<String, Offset> _targetKeypoints = _PoseMatcher.defaultTargetSkeleton;
+  List<List<String>> _targetConnections = _PoseMatcher.defaultConnections;
+  int _matchPercentage = 0;
+  double _skeletonWidthFactor = 0.45;
+  double _skeletonHeightFactor = 0.85;
+  double _baseSkeletonWidthFactor = 0.45;
+  double _baseSkeletonHeightFactor = 0.85;
+  String _distanceInstruction = 'Stand so your body size matches the skeleton';
+  Offset _skeletonCenter = const Offset(0.5, 0.55);
+  Offset _selectedPoseCenter = const Offset(0.5, 0.55);
+
   @override
   void initState() {
     super.initState();
@@ -25,8 +52,14 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
   Future<void> _initCamera() async {
     _cameras = await availableCameras();
     if (_cameras != null && _cameras!.isNotEmpty) {
-      _controller = CameraController(_cameras![0], ResolutionPreset.high);
+      _controller = CameraController(
+        _cameras![0],
+        ResolutionPreset.medium,
+        enableAudio: false,
+        imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+      );
       await _controller!.initialize();
+      await _controller!.startImageStream(_processCameraImage);
       setState(() {
         _isCameraReady = true;
       });
@@ -34,30 +67,155 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didLoadArgs) {
+      return;
+    }
+    _didLoadArgs = true;
+
+    final state = GoRouterState.of(context);
+    final args = state.extra is Map<String, dynamic> ? state.extra as Map<String, dynamic> : null;
+    if (args != null) {
+      _poseIdLog = args['pose_id']?.toString() ?? '';
+      _isFavouriteLog = args['is_favourite'] == true;
+      if (widget.skeletonData == null && args['skeletonData'] is String) {
+        _skeletonData = args['skeletonData'] as String;
+      }
+    }
+    _skeletonData ??= widget.skeletonData;
+    _setTargetSkeleton(_skeletonData);
+
+    debugPrint(
+      'WireframeCameraScreen: received pose_id = $_poseIdLog, is_favourite = $_isFavouriteLog',
+    );
+  }
+
+  Future<void> _processCameraImage(CameraImage image) async {
+    if (_isProcessingFrame || !_isCameraReady || _controller == null) {
+      return;
+    }
+    _isProcessingFrame = true;
+
+    try {
+      final InputImage? inputImage = _toInputImage(image, _controller!.description);
+      if (inputImage == null) {
+        _isProcessingFrame = false;
+        return;
+      }
+
+      final List<Pose> poses = await _poseDetector.processImage(inputImage);
+      if (!mounted) {
+        _isProcessingFrame = false;
+        return;
+      }
+
+      if (poses.isEmpty) {
+        setState(() {
+          _matchPercentage = 0;
+          _distanceInstruction = 'Step into frame until your full body is visible';
+        });
+        _isProcessingFrame = false;
+        return;
+      }
+
+      final Map<String, Offset> userKeypoints = _PoseMatcher.extractUserKeypoints(poses.first);
+      final _BodyMetrics? bodyMetrics = _PoseMatcher.extractBodyMetrics(
+        poses.first,
+        imageWidth: image.width.toDouble(),
+        imageHeight: image.height.toDouble(),
+      );
+      final _PoseMatchResult result = _PoseMatcher.calculateMatch(
+        target: _targetKeypoints,
+        user: userKeypoints,
+      );
+
+      final bool shouldUpdateMatch = (_matchPercentage - result.matchPercentage).abs() >= 1;
+      final String distanceInstruction = bodyMetrics == null
+          ? 'Keep your full body visible in frame'
+          : _buildDistanceInstruction(bodyMetrics);
+      final bool shouldUpdateDistanceInstruction = _distanceInstruction != distanceInstruction;
+
+      if (shouldUpdateMatch || shouldUpdateDistanceInstruction) {
+        setState(() {
+          if (shouldUpdateMatch) {
+            _matchPercentage = result.matchPercentage;
+          }
+          _distanceInstruction = distanceInstruction;
+        });
+      }
+    } catch (_) {
+      // Keep camera flow resilient when a frame fails.
+    }
+
+    _isProcessingFrame = false;
+  }
+
+  InputImage? _toInputImage(CameraImage image, CameraDescription cameraDescription) {
+    final InputImageRotation? rotation = InputImageRotationValue.fromRawValue(
+      cameraDescription.sensorOrientation,
+    );
+    if (rotation == null || image.planes.isEmpty) {
+      return null;
+    }
+
+    final Uint8List bytes = Uint8List.fromList(
+      image.planes.expand((Plane plane) => plane.bytes).toList(),
+    );
+
+    final InputImageFormat format = Platform.isAndroid
+        ? InputImageFormat.nv21
+        : InputImageFormat.bgra8888;
+
+    return InputImage.fromBytes(
+      bytes: bytes,
+      metadata: InputImageMetadata(
+        size: Size(image.width.toDouble(), image.height.toDouble()),
+        rotation: rotation,
+        format: format,
+        bytesPerRow: image.planes.first.bytesPerRow,
+      ),
+    );
+  }
+
+  void _setTargetSkeleton(String? skeletonData) {
+    final parsed = _PoseMatcher.parseSkeletonData(skeletonData);
+    final placement = _PoseMatcher.parseSkeletonPlacement(skeletonData);
+    setState(() {
+      _targetKeypoints = parsed.isNotEmpty ? parsed : _PoseMatcher.defaultTargetSkeleton;
+      _targetConnections = _PoseMatcher.connectionsFor(_targetKeypoints.keys.toSet());
+      if (placement != null) {
+        _selectedPoseCenter = placement.center;
+        _skeletonCenter = placement.center;
+        _skeletonWidthFactor = placement.width.clamp(0.25, 0.92);
+        _skeletonHeightFactor = placement.height.clamp(0.35, 0.98);
+        _baseSkeletonWidthFactor = _skeletonWidthFactor;
+        _baseSkeletonHeightFactor = _skeletonHeightFactor;
+      } else {
+        _selectedPoseCenter = const Offset(0.5, 0.55);
+        _skeletonCenter = _selectedPoseCenter;
+        _baseSkeletonWidthFactor = _skeletonWidthFactor;
+        _baseSkeletonHeightFactor = _skeletonHeightFactor;
+      }
+      _distanceInstruction = 'Stand so your body size matches the skeleton';
+    });
+  }
+
+  @override
   void dispose() {
+    if (_controller?.value.isStreamingImages == true) {
+      _controller?.stopImageStream();
+    }
+    _poseDetector.close();
     _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Retrieve skeletonData from navigation if not provided via constructor
-    final state = GoRouterState.of(context);
-    final args = state.extra is Map<String, dynamic> ? state.extra as Map<String, dynamic> : null;
-    String? skeletonData = widget.skeletonData;
-    String poseIdLog = '';
-    bool isFavouriteLog = false;
-    if (args != null) {
-      poseIdLog = args['pose_id']?.toString() ?? '';
-      isFavouriteLog = args['is_favourite'] ?? false;
-    }
-    debugPrint(
-      'WireframeCameraScreen: build received pose_id = $poseIdLog, is_favourite = $isFavouriteLog',
-    );
-    if (skeletonData == null && args != null && args['skeletonData'] is String) {
-      skeletonData = args['skeletonData'] as String?;
-    }
-    // skeletonData is now available for use
+    final bool isMatched = _matchPercentage >= 90;
+    final Color skeletonColor = isMatched ? Colors.green : Colors.white;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F7F5),
       body: SafeArea(
@@ -71,7 +229,7 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.black),
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                   ),
                   const Text(
                     'Wireframe',
@@ -94,16 +252,30 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 8.0),
-                  child: Text(
-                    'Align your body within the white wireframe',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14,
-                    ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Match: $_matchPercentage%',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _distanceInstruction,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -123,7 +295,18 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
                             child: const Center(child: CircularProgressIndicator()),
                           ),
                   ),
-                  CustomPaint(size: const Size(200, 400), painter: _PoseWireframePainter()),
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _PoseWireframePainter(
+                        points: _targetKeypoints,
+                        connections: _targetConnections,
+                        color: skeletonColor,
+                        center: _skeletonCenter,
+                        widthFactor: _skeletonWidthFactor,
+                        heightFactor: _skeletonHeightFactor,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -145,21 +328,15 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
                         ? () async {
                             final XFile file = await _controller!.takePicture();
                             if (context.mounted) {
-                              // Retrieve pose_id and is_favourite from navigation args
-                              final args = ModalRoute.of(context)?.settings.arguments;
-                              // Use poseIdLog and isFavouriteLog from build
                               AppLogger.debug(
-                                'WireframeCameraScreen: Passing to photo-preview -> pose_id: ' +
-                                    poseIdLog +
-                                    ', is_favourite: ' +
-                                    isFavouriteLog.toString(),
+                                'WireframeCameraScreen: Passing to photo-preview -> pose_id: $_poseIdLog, is_favourite: $_isFavouriteLog',
                               );
                               context.push(
                                 '/photo-preview',
                                 extra: {
                                   'imagePath': file.path,
-                                  'pose_id': poseIdLog,
-                                  'is_favourite': isFavouriteLog,
+                                  'pose_id': _poseIdLog,
+                                  'is_favourite': _isFavouriteLog,
                                 },
                               );
                             }
@@ -174,63 +351,533 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
       ),
     );
   }
+
+  String _buildDistanceInstruction(_BodyMetrics metrics) {
+    final targetHeight = _baseSkeletonHeightFactor.clamp(0.20, 0.99);
+    final targetWidth = _baseSkeletonWidthFactor.clamp(0.15, 0.95);
+    final heightRatio = metrics.height / targetHeight;
+    final widthRatio = metrics.width / targetWidth;
+    final ratio = (heightRatio * 0.7) + (widthRatio * 0.3);
+
+    if (ratio > 1.05) {
+      final meters = (((ratio - 1.0) * 1.0).clamp(0.1, 2.0));
+      final cm = (meters * 100).round();
+      return 'Move back about $cm cm';
+    }
+    if (ratio < 0.95) {
+      final meters = (((1.0 / ratio) - 1.0) * 1.0).clamp(0.1, 2.0);
+      final cm = (meters * 100).round();
+      return 'Move closer about $cm cm';
+    }
+
+    return 'Perfect distance. Hold this position';
+  }
 }
 
 class _PoseWireframePainter extends CustomPainter {
+  final Map<String, Offset> points;
+  final List<List<String>> connections;
+  final Color color;
+  final Offset center;
+  final double widthFactor;
+  final double heightFactor;
+
+  _PoseWireframePainter({
+    required this.points,
+    required this.connections,
+    required this.color,
+    required this.center,
+    required this.widthFactor,
+    required this.heightFactor,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white
+      ..color = color
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
     final dotPaint = Paint()
-      ..color = Colors.white
+      ..color = color
       ..strokeWidth = 4
       ..style = PaintingStyle.fill;
 
-    // Example skeleton points (mock pose)
-    final points = [
-      Offset(size.width * 0.5, size.height * 0.1), // head
-      Offset(size.width * 0.5, size.height * 0.2), // neck
-      Offset(size.width * 0.4, size.height * 0.3), // left shoulder
-      Offset(size.width * 0.6, size.height * 0.3), // right shoulder
-      Offset(size.width * 0.35, size.height * 0.5), // left elbow
-      Offset(size.width * 0.65, size.height * 0.5), // right elbow
-      Offset(size.width * 0.3, size.height * 0.7), // left wrist
-      Offset(size.width * 0.7, size.height * 0.7), // right wrist
-      Offset(size.width * 0.5, size.height * 0.4), // chest
-      Offset(size.width * 0.5, size.height * 0.6), // hip
-      Offset(size.width * 0.4, size.height * 0.8), // left knee
-      Offset(size.width * 0.6, size.height * 0.8), // right knee
-      Offset(size.width * 0.4, size.height * 0.95), // left ankle
-      Offset(size.width * 0.6, size.height * 0.95), // right ankle
-    ];
+    final xs = points.values.map((e) => e.dx).toList();
+    final ys = points.values.map((e) => e.dy).toList();
+    final minX = xs.reduce(math.min);
+    final maxX = xs.reduce(math.max);
+    final minY = ys.reduce(math.min);
+    final maxY = ys.reduce(math.max);
+    final spanX = (maxX - minX).abs() < 1e-6 ? 1.0 : (maxX - minX);
+    final spanY = (maxY - minY).abs() < 1e-6 ? 1.0 : (maxY - minY);
 
-    // Draw lines (mock connections)
-    final connections = [
-      [0, 1],
-      [1, 2],
-      [1, 3],
-      [2, 4],
-      [3, 5],
-      [4, 6],
-      [5, 7],
-      [1, 8],
-      [8, 9],
-      [9, 10],
-      [9, 11],
-      [10, 12],
-      [11, 13],
-    ];
-    for (var pair in connections) {
-      canvas.drawLine(points[pair[0]], points[pair[1]], paint);
+    final left = center.dx - (widthFactor / 2);
+    final top = center.dy - (heightFactor / 2);
+
+    final Map<String, Offset> scaled = {
+      for (final entry in points.entries)
+        entry.key: Offset(
+          ((left + ((entry.value.dx - minX) / spanX) * widthFactor).clamp(0.0, 1.0)) * size.width,
+          ((top + ((entry.value.dy - minY) / spanY) * heightFactor).clamp(0.0, 1.0)) * size.height,
+        ),
+    };
+
+    for (final pair in connections) {
+      if (pair.length != 2) {
+        continue;
+      }
+      final p1 = scaled[pair[0]];
+      final p2 = scaled[pair[1]];
+      if (p1 == null || p2 == null) {
+        continue;
+      }
+      canvas.drawLine(p1, p2, paint);
     }
-    // Draw dots
-    for (var point in points) {
+
+    for (final point in scaled.values) {
       canvas.drawCircle(point, 4, dotPaint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _PoseWireframePainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.points != points ||
+        oldDelegate.connections != connections ||
+        oldDelegate.center != center ||
+        oldDelegate.widthFactor != widthFactor ||
+        oldDelegate.heightFactor != heightFactor;
+  }
+}
+
+class _BodyMetrics {
+  final double width;
+  final double height;
+
+  const _BodyMetrics({required this.width, required this.height});
+}
+
+class _SkeletonPlacement {
+  final Offset center;
+  final double width;
+  final double height;
+
+  const _SkeletonPlacement({required this.center, required this.width, required this.height});
+}
+
+class _PoseMatchResult {
+  final int matchPercentage;
+  final String instruction;
+
+  const _PoseMatchResult({required this.matchPercentage, required this.instruction});
+}
+
+class _PoseMatcher {
+  static const Map<int, String> _mediapipeIdToJoint = {
+    0: 'nose',
+    2: 'left_eye',
+    5: 'right_eye',
+    7: 'left_ear',
+    8: 'right_ear',
+    11: 'left_shoulder',
+    12: 'right_shoulder',
+    13: 'left_elbow',
+    14: 'right_elbow',
+    15: 'left_wrist',
+    16: 'right_wrist',
+    23: 'left_hip',
+    24: 'right_hip',
+    25: 'left_knee',
+    26: 'right_knee',
+    27: 'left_ankle',
+    28: 'right_ankle',
+  };
+
+  static const List<List<String>> defaultConnections = [
+    ['left_shoulder', 'right_shoulder'],
+    ['left_shoulder', 'left_elbow'],
+    ['left_elbow', 'left_wrist'],
+    ['right_shoulder', 'right_elbow'],
+    ['right_elbow', 'right_wrist'],
+    ['left_shoulder', 'left_hip'],
+    ['right_shoulder', 'right_hip'],
+    ['left_hip', 'right_hip'],
+    ['left_hip', 'left_knee'],
+    ['left_knee', 'left_ankle'],
+    ['right_hip', 'right_knee'],
+    ['right_knee', 'right_ankle'],
+  ];
+
+  static Map<String, Offset> get defaultTargetSkeleton => {
+    'nose': const Offset(0.5, 0.12),
+    'left_shoulder': const Offset(0.42, 0.28),
+    'right_shoulder': const Offset(0.58, 0.28),
+    'left_elbow': const Offset(0.35, 0.44),
+    'right_elbow': const Offset(0.65, 0.44),
+    'left_wrist': const Offset(0.3, 0.62),
+    'right_wrist': const Offset(0.7, 0.62),
+    'left_hip': const Offset(0.44, 0.52),
+    'right_hip': const Offset(0.56, 0.52),
+    'left_knee': const Offset(0.44, 0.75),
+    'right_knee': const Offset(0.56, 0.75),
+    'left_ankle': const Offset(0.44, 0.94),
+    'right_ankle': const Offset(0.56, 0.94),
+  };
+
+  static Map<String, Offset> parseSkeletonData(String? raw) {
+    if (raw == null || raw.trim().isEmpty) {
+      return {};
+    }
+    try {
+      final dynamic decoded = jsonDecode(raw);
+      final Map<String, Offset> parsed = _extractFromDynamic(decoded);
+      return _normalizeToUnitBox(parsed);
+    } catch (_) {
+      return {};
+    }
+  }
+
+  static _SkeletonPlacement? parseSkeletonPlacement(String? raw) {
+    if (raw == null || raw.trim().isEmpty) {
+      return null;
+    }
+    try {
+      final dynamic decoded = jsonDecode(raw);
+      final Map<String, Offset> parsed = _extractFromDynamic(decoded);
+      if (parsed.isEmpty) {
+        return null;
+      }
+
+      final xs = parsed.values.map((e) => e.dx).toList();
+      final ys = parsed.values.map((e) => e.dy).toList();
+      final minX = xs.reduce(math.min);
+      final maxX = xs.reduce(math.max);
+      final minY = ys.reduce(math.min);
+      final maxY = ys.reduce(math.max);
+
+      final allNormalized = minX >= 0 && maxX <= 1.0 && minY >= 0 && maxY <= 1.0;
+
+      if (allNormalized) {
+        return _SkeletonPlacement(
+          center: Offset(
+            ((minX + maxX) / 2).clamp(0.15, 0.85),
+            ((minY + maxY) / 2).clamp(0.1, 0.9),
+          ),
+          width: (maxX - minX).abs(),
+          height: (maxY - minY).abs(),
+        );
+      }
+
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Map<String, Offset> extractUserKeypoints(Pose pose) {
+    final Map<String, PoseLandmarkType> keyMap = {
+      'nose': PoseLandmarkType.nose,
+      'left_eye': PoseLandmarkType.leftEye,
+      'right_eye': PoseLandmarkType.rightEye,
+      'left_ear': PoseLandmarkType.leftEar,
+      'right_ear': PoseLandmarkType.rightEar,
+      'left_shoulder': PoseLandmarkType.leftShoulder,
+      'right_shoulder': PoseLandmarkType.rightShoulder,
+      'left_elbow': PoseLandmarkType.leftElbow,
+      'right_elbow': PoseLandmarkType.rightElbow,
+      'left_wrist': PoseLandmarkType.leftWrist,
+      'right_wrist': PoseLandmarkType.rightWrist,
+      'left_hip': PoseLandmarkType.leftHip,
+      'right_hip': PoseLandmarkType.rightHip,
+      'left_knee': PoseLandmarkType.leftKnee,
+      'right_knee': PoseLandmarkType.rightKnee,
+      'left_ankle': PoseLandmarkType.leftAnkle,
+      'right_ankle': PoseLandmarkType.rightAnkle,
+    };
+
+    final Map<String, Offset> points = {};
+    for (final entry in keyMap.entries) {
+      final landmark = pose.landmarks[entry.value];
+      if (landmark != null) {
+        points[entry.key] = Offset(landmark.x.toDouble(), landmark.y.toDouble());
+      }
+    }
+    return _normalizeToUnitBox(points);
+  }
+
+  static _PoseMatchResult calculateMatch({
+    required Map<String, Offset> target,
+    required Map<String, Offset> user,
+  }) {
+    final Set<String> common = target.keys.toSet().intersection(user.keys.toSet());
+    if (common.length < 4) {
+      return const _PoseMatchResult(
+        matchPercentage: 0,
+        instruction: 'Keep your full body visible in the frame',
+      );
+    }
+
+    double totalScore = 0;
+    String? worstJoint;
+    double worstDistance = -1;
+    double worstDx = 0;
+    double worstDy = 0;
+
+    for (final joint in common) {
+      final Offset t = target[joint]!;
+      final Offset u = user[joint]!;
+      final double dx = t.dx - u.dx;
+      final double dy = t.dy - u.dy;
+      final double distance = math.sqrt(dx * dx + dy * dy);
+      final double score = (1 - (distance / 0.35)).clamp(0.0, 1.0);
+      totalScore += score;
+
+      if (distance > worstDistance) {
+        worstDistance = distance;
+        worstJoint = joint;
+        worstDx = dx;
+        worstDy = dy;
+      }
+    }
+
+    final int percentage = ((totalScore / common.length) * 100).round().clamp(0, 100);
+    final String instruction = _buildInstruction(
+      percentage: percentage,
+      joint: worstJoint,
+      dx: worstDx,
+      dy: worstDy,
+    );
+
+    return _PoseMatchResult(matchPercentage: percentage, instruction: instruction);
+  }
+
+  static _BodyMetrics? extractBodyMetrics(
+    Pose pose, {
+    required double imageWidth,
+    required double imageHeight,
+  }) {
+    if (imageWidth <= 0 || imageHeight <= 0) {
+      return null;
+    }
+
+    const tracked = [
+      PoseLandmarkType.nose,
+      PoseLandmarkType.leftShoulder,
+      PoseLandmarkType.rightShoulder,
+      PoseLandmarkType.leftHip,
+      PoseLandmarkType.rightHip,
+      PoseLandmarkType.leftKnee,
+      PoseLandmarkType.rightKnee,
+      PoseLandmarkType.leftAnkle,
+      PoseLandmarkType.rightAnkle,
+    ];
+
+    final points = <Offset>[];
+    for (final type in tracked) {
+      final landmark = pose.landmarks[type];
+      if (landmark == null) {
+        continue;
+      }
+      points.add(
+        Offset(
+          (landmark.x / imageWidth).clamp(0.0, 1.0),
+          (landmark.y / imageHeight).clamp(0.0, 1.0),
+        ),
+      );
+    }
+
+    if (points.length < 4) {
+      return null;
+    }
+
+    final minX = points.map((p) => p.dx).reduce(math.min);
+    final maxX = points.map((p) => p.dx).reduce(math.max);
+    final minY = points.map((p) => p.dy).reduce(math.min);
+    final maxY = points.map((p) => p.dy).reduce(math.max);
+
+    final width = ((maxX - minX).abs() * 1.12).clamp(0.05, 1.0);
+    final height = ((maxY - minY).abs() * 1.08).clamp(0.08, 1.0);
+    return _BodyMetrics(width: width, height: height);
+  }
+
+  static String _buildInstruction({
+    required int percentage,
+    required String? joint,
+    required double dx,
+    required double dy,
+  }) {
+    if (percentage >= 90) {
+      return 'Excellent! Hold this pose';
+    }
+    if (joint == null) {
+      return 'Align your body with the target skeleton';
+    }
+
+    final String prettyJoint = joint.replaceAll('_', ' ');
+    final List<String> movements = [];
+
+    if (dx.abs() > 0.04) {
+      movements.add(dx > 0 ? 'move right' : 'move left');
+    }
+    if (dy.abs() > 0.04) {
+      movements.add(dy > 0 ? 'move down' : 'move up');
+    }
+
+    if (movements.isEmpty) {
+      return 'Fine tune your posture and hold steady';
+    }
+
+    return 'Adjust $prettyJoint: ${movements.join(' and ')}';
+  }
+
+  static Map<String, Offset> _extractFromDynamic(dynamic decoded) {
+    final Map<String, Offset> points = {};
+
+    if (decoded is List) {
+      for (final item in decoded) {
+        if (item is Map) {
+          final dynamic rawId = item['id'];
+          final int? id = rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
+          final String? name = id != null
+              ? (_mediapipeIdToJoint[id] ??
+                    _normalizeJointName(item['name']?.toString() ?? item['key']?.toString()))
+              : _normalizeJointName(
+                  item['name']?.toString() ?? item['id']?.toString() ?? item['key']?.toString(),
+                );
+          final Offset? point = _offsetFromAny(item);
+          if (name != null && point != null) {
+            points[name] = point;
+          }
+        }
+      }
+      return points;
+    }
+
+    if (decoded is Map) {
+      final dynamic candidates = decoded['keypoints'] ?? decoded['landmarks'] ?? decoded['points'];
+      if (candidates != null) {
+        points.addAll(_extractFromDynamic(candidates));
+      }
+
+      for (final entry in decoded.entries) {
+        final String? key = _normalizeJointName(entry.key.toString());
+        if (key == null) {
+          continue;
+        }
+        final Offset? point = _offsetFromAny(entry.value);
+        if (point != null) {
+          points[key] = point;
+        }
+      }
+    }
+
+    return points;
+  }
+
+  static Offset? _offsetFromAny(dynamic value) {
+    if (value is Map) {
+      final x = _toDouble(value['x'] ?? value['X'] ?? value['dx']);
+      final y = _toDouble(value['y'] ?? value['Y'] ?? value['dy']);
+      if (x != null && y != null) {
+        return Offset(x, y);
+      }
+    }
+
+    if (value is List && value.length >= 2) {
+      final x = _toDouble(value[0]);
+      final y = _toDouble(value[1]);
+      if (x != null && y != null) {
+        return Offset(x, y);
+      }
+    }
+    return null;
+  }
+
+  static double? _toDouble(dynamic value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    if (value is String) {
+      return double.tryParse(value);
+    }
+    return null;
+  }
+
+  static String? _normalizeJointName(String? raw) {
+    if (raw == null || raw.trim().isEmpty) {
+      return null;
+    }
+    final key = raw
+        .trim()
+        .toLowerCase()
+        .replaceAll('-', '_')
+        .replaceAll(' ', '_')
+        .replaceAll('left', 'left')
+        .replaceAll('right', 'right');
+
+    const aliases = {
+      'leftshoulder': 'left_shoulder',
+      'rightshoulder': 'right_shoulder',
+      'leftelbow': 'left_elbow',
+      'rightelbow': 'right_elbow',
+      'leftwrist': 'left_wrist',
+      'rightwrist': 'right_wrist',
+      'lefthip': 'left_hip',
+      'righthip': 'right_hip',
+      'leftknee': 'left_knee',
+      'rightknee': 'right_knee',
+      'leftankle': 'left_ankle',
+      'rightankle': 'right_ankle',
+      'l_shoulder': 'left_shoulder',
+      'r_shoulder': 'right_shoulder',
+      'l_elbow': 'left_elbow',
+      'r_elbow': 'right_elbow',
+      'l_wrist': 'left_wrist',
+      'r_wrist': 'right_wrist',
+      'l_hip': 'left_hip',
+      'r_hip': 'right_hip',
+      'l_knee': 'left_knee',
+      'r_knee': 'right_knee',
+      'l_ankle': 'left_ankle',
+      'r_ankle': 'right_ankle',
+    };
+
+    if (aliases.containsKey(key)) {
+      return aliases[key];
+    }
+
+    return key;
+  }
+
+  static Map<String, Offset> _normalizeToUnitBox(Map<String, Offset> raw) {
+    if (raw.isEmpty) {
+      return {};
+    }
+
+    final xs = raw.values.map((e) => e.dx).toList();
+    final ys = raw.values.map((e) => e.dy).toList();
+    final minX = xs.reduce(math.min);
+    final maxX = xs.reduce(math.max);
+    final minY = ys.reduce(math.min);
+    final maxY = ys.reduce(math.max);
+
+    final width = (maxX - minX).abs() < 1e-5 ? 1.0 : (maxX - minX);
+    final height = (maxY - minY).abs() < 1e-5 ? 1.0 : (maxY - minY);
+
+    return {
+      for (final entry in raw.entries)
+        entry.key: Offset((entry.value.dx - minX) / width, (entry.value.dy - minY) / height),
+    };
+  }
+
+  static List<List<String>> connectionsFor(Set<String> availableJoints) {
+    return defaultConnections
+        .where(
+          (pair) =>
+              pair.length == 2 &&
+              availableJoints.contains(pair[0]) &&
+              availableJoints.contains(pair[1]),
+        )
+        .toList();
+  }
 }

@@ -13,36 +13,19 @@ class ViewPoseScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('View Pose')),
-      body: ListView.builder(
+      body: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+        ),
         padding: const EdgeInsets.all(16),
         itemCount: poses.length,
         itemBuilder: (context, index) {
           final pose = poses[index];
           return Card(
             margin: const EdgeInsets.symmetric(vertical: 8),
-            child: ListTile(
-              leading: pose.poseImageBase64 != null
-                  ? Image.memory(
-                      base64Decode(
-                        pose.poseImageBase64!.contains(',')
-                            ? pose.poseImageBase64!.split(',').last
-                            : pose.poseImageBase64!,
-                      ),
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.cover,
-                    )
-                  : Image.network(
-                      'http://<your_host>/static/${pose.poseImage}',
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.cover,
-                    ),
-              title: Text(pose.description ?? 'No description'),
-              subtitle: Text(
-                'Scene: ${pose.sceneTag ?? '-'} | Lighting: ${pose.lightingTag ?? '-'}',
-              ),
-              trailing: Text(pose.gender),
+            child: GestureDetector(
               onTap: () {
                 final extraData = {
                   'pose_id': pose.poseId.toString(),
@@ -66,6 +49,25 @@ class ViewPoseScreen extends StatelessWidget {
                   );
                 }
               },
+              child: ClipRRect(
+                child: pose.poseImageBase64 != null
+                    ? Image.memory(
+                        base64Decode(
+                          pose.poseImageBase64!.contains(',')
+                              ? pose.poseImageBase64!.split(',').last
+                              : pose.poseImageBase64!,
+                        ),
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.network(
+                        'http://<your_host>/static/${pose.poseImage}',
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                      ),
+              ),
             ),
           );
         },

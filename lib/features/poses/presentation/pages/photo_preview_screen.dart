@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/core/routing/route_names.dart';
 import 'package:posea_mobile_app/core/utils/logger.dart';
+import 'package:posea_mobile_app/core/utils/app_feedback.dart';
 import 'dart:io';
 import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
 import 'package:posea_mobile_app/features/auth/application/auth_provider.dart';
@@ -109,9 +110,7 @@ class PhotoPreviewScreen extends StatelessWidget {
                             isFavourite.toString(),
                       );
                       if (poseId.isEmpty) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(const SnackBar(content: Text('Missing pose_id')));
+                        await AppFeedback.showErrorSheet('Missing pose_id');
                         return;
                       }
                       // Encode image file to base64
@@ -122,9 +121,7 @@ class PhotoPreviewScreen extends StatelessWidget {
                         final authProvider = Provider.of<AuthProvider>(context, listen: false);
                         final accessToken = authProvider.token;
                         if (accessToken == null) {
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(const SnackBar(content: Text('Missing access token')));
+                          await AppFeedback.showErrorSheet('Missing access token');
                           return;
                         }
                         final poseRepo = PoseImageRepository(apiService: PoseImageApiService());
@@ -135,16 +132,17 @@ class PhotoPreviewScreen extends StatelessWidget {
                           accessToken: accessToken,
                         );
                         if (success) {
-                          context.go(RouteNames.home);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Failed to save pose image')),
+                          await AppFeedback.showSuccessSheet(
+                            'Image Saved',
+                            'Your captured image has been saved successfully.',
+                            actionText: 'Done',
+                            onAction: () => context.go(RouteNames.home),
                           );
+                        } else {
+                          await AppFeedback.showErrorSheet('Failed to save pose image');
                         }
                       } catch (e) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                        await AppFeedback.showErrorSheet('Error: $e');
                       }
                     },
                     child: const Text(

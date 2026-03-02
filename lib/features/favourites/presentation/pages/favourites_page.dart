@@ -53,10 +53,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
         child: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+
           centerTitle: true,
           title: Text('Favourites', style: AppTextStyles.titleLarge),
         ),
@@ -169,7 +166,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
               context.go(RouteNames.gallery);
               break;
             case 2:
-              context.go(RouteNames.wireframeCamera);
+              context.go(RouteNames.uploadBackground);
               break;
             case 3:
               break;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:posea_mobile_app/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/core/widgets/custom_button.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +11,7 @@ class PoseOfTheDayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Consumer<PoseOfTheDayProvider>(
       builder: (context, provider, child) {
         if (provider.loading) {
@@ -75,7 +77,7 @@ class PoseOfTheDayCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Text(
-                      'Pose of the Day',
+                      l10n.poseOfTheDay,
                       style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                     const SizedBox(width: 12),
@@ -100,7 +102,7 @@ class PoseOfTheDayCard extends StatelessWidget {
                           context.push('/preview-pose', extra: map);
                         }
                       },
-                      label: 'Try this pose',
+                      label: l10n.tryThisPose,
                       width: 150,
                       height: 30,
                     ),

@@ -1,5 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:posea_mobile_app/core/routing/route_names.dart';
+import 'package:posea_mobile_app/core/utils/app_feedback.dart';
+import 'package:posea_mobile_app/core/utils/validators.dart';
+import 'package:posea_mobile_app/l10n/app_localizations.dart';
 import '../../../../core/widgets/index.dart';
 import 'package:provider/provider.dart';
 import '../../application/auth_provider.dart';
@@ -17,7 +21,19 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState?.validate() != true) return;
     final success = await auth.login(_emailController.text.trim(), _passwordController.text);
     if (success) {
-      context.go('/home');
+      context.go(RouteNames.home);
+      return;
+    }
+
+    if (!mounted) return;
+    if (auth.authFlowState == AuthFlowState.verificationPending) {
+      final email = auth.pendingEmail ?? _emailController.text.trim();
+      context.push('${RouteNames.verificationPending}?email=${Uri.encodeComponent(email)}');
+      return;
+    }
+
+    if (auth.error != null) {
+      await AppFeedback.showErrorSheet(auth.error!);
     }
   }
 
@@ -34,6 +50,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
@@ -61,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       Center(
                         child: Text(
-                          'Welcome Back!',
+                          l10n.welcomeBack,
                           style: TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.w500,
@@ -71,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       Center(
                         child: Text(
-                          'Continue capturing your moments',
+                          l10n.continueCapturingMoments,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
@@ -80,26 +97,37 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      const Text(
-                        'Email',
+                      Text(
+                        l10n.email,
                         style: TextStyle(fontWeight: FontWeight.w500, color: Colors.black),
                       ),
                       const SizedBox(height: 6),
                       CustomTextInputField(
-                        hintText: 'Enter your Email',
+                        hintText: l10n.enterYourEmail,
                         keyboardType: TextInputType.emailAddress,
                         controller: _emailController,
+                        validator: (value) => Validators.validateEmail(value?.trim()),
+                        onChanged: (_) {
+                          final auth = Provider.of<AuthProvider>(context, listen: false);
+                          auth.clearError();
+                        },
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Password',
+                      Text(
+                        l10n.password,
                         style: TextStyle(fontWeight: FontWeight.w500, color: Colors.black),
                       ),
                       const SizedBox(height: 6),
                       CustomTextInputField(
-                        hintText: 'Enter your password',
+                        hintText: l10n.enterYourPassword,
                         obscureText: true,
                         controller: _passwordController,
+                        validator: (value) =>
+                            Validators.validateRequired(value, label: l10n.password),
+                        onChanged: (_) {
+                          final auth = Provider.of<AuthProvider>(context, listen: false);
+                          auth.clearError();
+                        },
                       ),
                       const SizedBox(height: 8),
                       Align(
@@ -109,8 +137,8 @@ class _LoginPageState extends State<LoginPage> {
                             context.push('/forgot-password');
                           },
                           style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                          child: const Text(
-                            'Forgot password?',
+                          child: Text(
+                            l10n.forgotPasswordQuestion,
                             style: TextStyle(color: Color(0xFF8B6F47), fontWeight: FontWeight.w500),
                           ),
                         ),
@@ -121,48 +149,31 @@ class _LoginPageState extends State<LoginPage> {
                           final auth = Provider.of<AuthProvider>(context);
                           return Column(
                             children: [
-                              if (auth.error != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: Text(
-                                    auth.error!,
-                                    style: const TextStyle(color: Colors.red),
-                                  ),
-                                ),
                               CustomButton(
                                 onPressed: auth.loading
                                     ? null
                                     : () async {
                                         await _handleLogin(auth);
                                       },
-                                label: auth.loading ? 'Logging in...' : 'Login',
+                                label: auth.loading ? l10n.loggingIn : l10n.login,
                                 backgroundColor: const Color(0xFF8B6F47),
                                 textColor: Colors.white,
-                              ),
-                              const SizedBox(height: 12),
-                              CustomButton(
-                                onPressed: () {},
-                                label: 'Continue as guest',
-                                isBordered: true,
-                                backgroundColor: Colors.white,
-                                textColor: const Color(0xFF9B8572),
-                                borderColor: const Color(0xFF9B8572),
                               ),
                               const SizedBox(height: 12),
                               Center(
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Text(
-                                      "Don't have an account? ",
+                                    Text(
+                                      l10n.dontHaveAccount,
                                       style: TextStyle(fontSize: 13, color: Colors.black54),
                                     ),
                                     GestureDetector(
                                       onTap: () {
                                         context.push('/register');
                                       },
-                                      child: const Text(
-                                        'Sign up',
+                                      child: Text(
+                                        l10n.signUp,
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: Color(0xFF8B6F47),

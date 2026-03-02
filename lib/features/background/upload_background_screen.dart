@@ -11,6 +11,7 @@ import 'package:posea_mobile_app/features/poses/data/datasources/pose_image_api_
 import 'package:posea_mobile_app/features/poses/data/repositories/pose_image_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:posea_mobile_app/features/auth/application/auth_provider.dart';
+import 'package:posea_mobile_app/core/utils/app_feedback.dart';
 
 class UploadBackgroundScreen extends StatefulWidget {
   const UploadBackgroundScreen({Key? key}) : super(key: key);
@@ -33,9 +34,7 @@ class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
         imageQuality: 90,
       );
       if (pickedFile == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('No image selected')));
+        await AppFeedback.showErrorSheet('No image selected');
         return;
       }
       final bytes = await File(pickedFile.path).readAsBytes();
@@ -45,9 +44,7 @@ class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final accessToken = authProvider.token;
       if (accessToken == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('User not authenticated')));
+        await AppFeedback.showErrorSheet('User not authenticated');
         return;
       }
 
@@ -57,9 +54,7 @@ class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
         if (!mounted) return;
         Navigator.of(context).push(MaterialPageRoute(builder: (_) => ViewPoseScreen(poses: poses)));
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Failed to get suggested poses')));
+        await AppFeedback.showErrorSheet('Failed to get suggested poses');
       }
     } finally {
       if (mounted) setState(() => _loading = false);
