@@ -170,6 +170,7 @@ class _MalePosesPageState extends State<MalePosesPage> {
                                 'description': pose.description,
                                 'scene_tag': pose.sceneTag,
                                 'lighting_tag': pose.lightingTag,
+                                'skeletonData': pose.skeletonData,
                               },
                             );
                           },

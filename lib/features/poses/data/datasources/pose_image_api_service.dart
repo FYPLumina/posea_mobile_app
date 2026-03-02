@@ -13,7 +13,7 @@ class PoseImageApiService {
   ApiClient get _client => _apiClient ??= ApiClient(baseUrl: baseUrl);
 
   PoseImageApiService([String? baseUrl]) : baseUrl = baseUrl ?? AppConfig.baseUrl;
-  Future<bool> selectPose({required String poseId, required String accessToken}) async {
+  Future<SelectPoseResult> selectPose({required String poseId, required String accessToken}) async {
     final url = Uri.parse('$baseUrl/pose/select');
     AppLogger.info('POST $url');
     AppLogger.info('Selecting pose with ID: $poseId');
@@ -28,14 +28,19 @@ class PoseImageApiService {
       AppLogger.debug('Response: \\${response.statusCode} \\${response.body}');
       if (response.statusCode == 200 || response.statusCode == 201) {
         final json = jsonDecode(response.body);
-        return json['success'] == true;
+        final bool success = json['success'] == true;
+        final dynamic data = json['data'];
+        final String? skeletonData = data is Map<String, dynamic>
+            ? data['skeleton_data']?.toString()
+            : (data is Map ? data['skeleton_data']?.toString() : null);
+        return SelectPoseResult(success: success, skeletonData: skeletonData);
       }
       AppFeedback.showErrorSheet('Failed to select pose');
-      return false;
+      return const SelectPoseResult(success: false);
     } catch (e, st) {
       AppLogger.error('Error selecting pose', e, st);
       AppFeedback.showErrorSheet('Failed to select pose');
-      return false;
+      return const SelectPoseResult(success: false);
     }
   }
 
@@ -138,4 +143,11 @@ class PoseImageApiService {
     );
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
+}
+
+class SelectPoseResult {
+  final bool success;
+  final String? skeletonData;
+
+  const SelectPoseResult({required this.success, this.skeletonData});
 }

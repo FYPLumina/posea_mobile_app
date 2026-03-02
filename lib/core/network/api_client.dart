@@ -1,13 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import '../routing/navigation_service.dart';
+import '../routing/route_names.dart';
 import '../errors/exceptions.dart';
 import '../config/app_config.dart';
 import '../utils/app_feedback.dart';
 
 /// HTTP API Client wrapper for handling network requests
 class ApiClient {
+  static const FlutterSecureStorage _storage = FlutterSecureStorage();
+  static bool _isRoutingToLogin = false;
+
   final http.Client _client;
   final String baseUrl;
   final Duration timeout;
@@ -30,6 +37,7 @@ class ApiClient {
     for (var attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         final response = await request().timeout(timeout);
+        await _handleSessionExpiration(response);
         if (_shouldRetryStatusCode(response.statusCode) && attempt < maxRetries) {
           await Future.delayed(_retryDelayForAttempt(attempt));
           continue;
@@ -213,6 +221,35 @@ class ApiClient {
       return 'An error occurred';
     } catch (_) {
       return 'An error occurred';
+    }
+  }
+
+  Future<void> _handleSessionExpiration(http.Response response) async {
+    if (response.statusCode != 401 && response.statusCode != 403) {
+      return;
+    }
+
+    final errorText = _extractErrorMessage(response).toLowerCase();
+    final bool isSessionExpired =
+        errorText.contains('inactive user') ||
+        errorText.contains('invalid authentication token') ||
+        errorText.contains('token expired') ||
+        errorText.contains('expired token') ||
+        errorText.contains('not authenticated');
+
+    if (!isSessionExpired || _isRoutingToLogin) {
+      return;
+    }
+
+    _isRoutingToLogin = true;
+    try {
+      final context = NavigationService.context;
+      if (context != null) {
+        GoRouter.of(context).go(RouteNames.login);
+      }
+      await _storage.delete(key: 'access_token');
+    } finally {
+      _isRoutingToLogin = false;
     }
   }
 

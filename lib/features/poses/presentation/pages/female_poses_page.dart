@@ -102,7 +102,9 @@ class _FemalePosesPageState extends State<FemalePosesPage> {
               subtitle: 'Upload the background image',
               backgroundColor: const Color.fromARGB(121, 136, 97, 62),
               iconBackgroundColor: const Color.fromARGB(255, 75, 46, 10),
-              onTap: () {context.go(RouteNames.uploadBackground);},
+              onTap: () {
+                context.go(RouteNames.uploadBackground);
+              },
             ),
           ),
           Expanded(
@@ -166,6 +168,7 @@ class _FemalePosesPageState extends State<FemalePosesPage> {
                                 'description': pose.description,
                                 'scene_tag': pose.sceneTag,
                                 'lighting_tag': pose.lightingTag,
+                                'skeletonData': pose.skeletonData,
                               },
                             );
                           },
@@ -195,7 +198,7 @@ class _FemalePosesPageState extends State<FemalePosesPage> {
               context.go(RouteNames.home);
               break;
             case 1:
-             context.go(RouteNames.gallery);
+              context.go(RouteNames.gallery);
               break;
             case 2:
               context.go(RouteNames.uploadBackground);

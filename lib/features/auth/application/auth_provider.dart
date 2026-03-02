@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:go_router/go_router.dart';
+import 'package:posea_mobile_app/core/routing/navigation_service.dart';
+import 'package:posea_mobile_app/core/routing/route_names.dart';
 import '../../../core/network/auth_api.dart';
 
 enum AuthFlowState { unverified, verificationPending, verified, resetPending }
@@ -371,13 +374,32 @@ class AuthProvider extends ChangeNotifier {
       final res = await api.getProfile(token: _token!);
       if (res['success'] == true && res['data'] != null) {
         _profile = res['data'];
-      } else if (res['error']?.toString().contains('Invalid authentication token') == true) {
-        await logout();
+      } else {
+        final errorMessage = res['error']?.toString().toLowerCase() ?? '';
+        final bool isInvalidToken = errorMessage.contains('invalid authentication token');
+        final bool isInactiveUser = errorMessage.contains('inactive user');
+
+        if (isInvalidToken || isInactiveUser) {
+          await _forceLogoutAndRouteToLogin();
+        }
       }
     } catch (e) {
       // Optionally handle other errors
     }
     notifyListeners();
+  }
+
+  Future<void> _forceLogoutAndRouteToLogin() async {
+    _token = null;
+    _profile = null;
+    _error = null;
+    _authFlowState = AuthFlowState.unverified;
+    final context = NavigationService.context;
+    if (context != null) {
+      GoRouter.of(context).go(RouteNames.login);
+    }
+
+    await _storage.delete(key: 'access_token');
   }
 
   void clearError() {

@@ -77,14 +77,19 @@ class PreviewPoseScreen extends StatelessWidget {
               final accessToken = authProvider.token;
               if (poseId != null && accessToken != null) {
                 final poseRepo = PoseImageRepository(apiService: PoseImageApiService());
-                final success = await poseRepo.selectPose(poseId: poseId, accessToken: accessToken);
-                if (success) {
+                final result = await poseRepo.selectPose(poseId: poseId, accessToken: accessToken);
+                if (result.success) {
+                  final selectedSkeletonData = result.skeletonData ?? skeletonData;
                   debugPrint(
                     'PreviewPoseScreen: Navigating to wireframe-camera with pose_id = $poseId',
                   );
                   context.push(
                     '/wireframe-camera',
-                    extra: {'skeletonData': skeletonData, 'pose_id': poseId, 'is_favourite': false},
+                    extra: {
+                      'skeletonData': selectedSkeletonData,
+                      'pose_id': poseId,
+                      'is_favourite': false,
+                    },
                   );
                 } else {
                   await AppFeedback.showErrorSheet('Failed to update pose');
