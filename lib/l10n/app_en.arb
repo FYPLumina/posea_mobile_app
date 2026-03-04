@@ -132,5 +132,14 @@
   "enterPasswordAgain": "Enter again password",
   "passwordChanged": "Password Changed",
   "passwordChangedDescription": "Your password has been updated successfully",
+  "beachImageWarningTitle": "Image may not be beach",
+  "beachImageWarningMessage": "This image does not look like a beach. Upload anyway?",
+  "uploadAnyway": "Upload anyway",
+  "beachImageRequired": "Please upload a beach image.",
+  "uploadBackgroundTitle": "Upload Background",
+  "uploadBackgroundCardTitle": "Upload background",
+  "uploadBackgroundCardSubtitle": "Select photo from your gallery\nor use the camera",
+  "noImageSelected": "No image selected",
+  "userNotAuthenticated": "User not authenticated",
   "done": "Done"
 }

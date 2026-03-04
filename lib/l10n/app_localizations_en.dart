@@ -397,5 +397,34 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your password has been updated successfully';
 
   @override
+  String get beachImageWarningTitle => 'Image may not be beach';
+
+  @override
+  String get beachImageWarningMessage =>
+      'This image does not look like a beach. Upload anyway?';
+
+  @override
+  String get uploadAnyway => 'Upload anyway';
+
+  @override
+  String get beachImageRequired => 'Please upload a beach image.';
+
+  @override
+  String get uploadBackgroundTitle => 'Upload Background';
+
+  @override
+  String get uploadBackgroundCardTitle => 'Upload background';
+
+  @override
+  String get uploadBackgroundCardSubtitle =>
+      'Select photo from your gallery\nor use the camera';
+
+  @override
+  String get noImageSelected => 'No image selected';
+
+  @override
+  String get userNotAuthenticated => 'User not authenticated';
+
+  @override
   String get done => 'Done';
 }

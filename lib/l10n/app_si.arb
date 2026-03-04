@@ -122,5 +122,14 @@
   "enterPasswordAgain": "නැවත මුරපදය ඇතුළත් කරන්න",
   "passwordChanged": "මුරපදය වෙනස් විය",
   "passwordChangedDescription": "ඔබගේ මුරපදය සාර්ථකව යාවත්කාලීන විය",
+  "beachImageWarningTitle": "මෙය වෙරළ රූපයක් නොවිය හැක",
+  "beachImageWarningMessage": "මෙම රූපය වෙරළ රූපයක් ලෙස නොපෙනේ. කොහොමහරි upload කරන්නද?",
+  "uploadAnyway": "කොහොමහරි Upload කරන්න",
+  "beachImageRequired": "කරුණාකර වෙරළ රූපයක් upload කරන්න.",
+  "uploadBackgroundTitle": "පසුබිම Upload කරන්න",
+  "uploadBackgroundCardTitle": "පසුබිම Upload කරන්න",
+  "uploadBackgroundCardSubtitle": "ඔබේ ගැලරියෙන් ඡායාරූපයක් තෝරන්න\nහෝ කැමරාව භාවිත කරන්න",
+  "noImageSelected": "රූපයක් තෝරා නැත",
+  "userNotAuthenticated": "පරිශීලකයා තහවුරු වී නැත",
   "done": "හරි"
 }

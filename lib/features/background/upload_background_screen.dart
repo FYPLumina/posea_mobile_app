@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +16,7 @@ import 'package:posea_mobile_app/features/poses/data/repositories/pose_image_rep
 import 'package:provider/provider.dart';
 import 'package:posea_mobile_app/features/auth/application/auth_provider.dart';
 import 'package:posea_mobile_app/core/utils/app_feedback.dart';
+import 'package:posea_mobile_app/l10n/app_localizations.dart';
 
 class UploadBackgroundScreen extends StatefulWidget {
   const UploadBackgroundScreen({Key? key}) : super(key: key);
@@ -23,7 +28,138 @@ class UploadBackgroundScreen extends StatefulWidget {
 class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
   bool _loading = false;
 
+  Future<bool> _showUploadAnywayDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    final shouldUploadAnyway = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.beachImageWarningTitle),
+          content: Text(l10n.beachImageWarningMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(l10n.uploadAnyway),
+            ),
+          ],
+        );
+      },
+    );
+
+    return shouldUploadAnyway ?? false;
+  }
+
+  Future<bool> _isLikelyBeachImage(Uint8List bytes) async {
+    try {
+      final image = await _decodeImage(bytes);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+      if (byteData == null) {
+        return true;
+      }
+
+      final pixels = byteData.buffer.asUint8List();
+      final width = image.width;
+      final height = image.height;
+
+      final stepX = max(1, width ~/ 32);
+      final stepY = max(1, height ~/ 32);
+
+      int sampled = 0;
+      int topSamples = 0;
+      int bottomSamples = 0;
+      int topSkyCount = 0;
+      int warmSkyCount = 0;
+      int bottomBeachCount = 0;
+      int greenCount = 0;
+      int blueOverallCount = 0;
+      int sandOverallCount = 0;
+
+      final splitTop = (height * 0.55).toInt();
+      final splitBottom = (height * 0.35).toInt();
+
+      for (int y = 0; y < height; y += stepY) {
+        for (int x = 0; x < width; x += stepX) {
+          final index = (y * width + x) * 4;
+          final r = pixels[index];
+          final g = pixels[index + 1];
+          final b = pixels[index + 2];
+
+          final hsv = HSVColor.fromColor(Color.fromARGB(255, r, g, b));
+          final hue = hsv.hue;
+          final sat = hsv.saturation;
+          final val = hsv.value;
+
+          final isBlue = hue >= 175 && hue <= 250 && sat > 0.12 && val > 0.20;
+          final isWarmSky = hue >= 10 && hue <= 60 && sat >= 0.08 && sat <= 0.75 && val > 0.30;
+          final isSand = hue >= 18 && hue <= 58 && sat >= 0.08 && sat <= 0.80 && val > 0.30;
+          final isWater = hue >= 160 && hue <= 235 && sat > 0.15 && val > 0.18;
+          final isGreen = hue >= 70 && hue <= 160 && sat > 0.2 && val > 0.2;
+
+          sampled++;
+          if (isBlue) {
+            blueOverallCount++;
+          }
+          if (isSand) {
+            sandOverallCount++;
+          }
+
+          if (y < splitTop) {
+            topSamples++;
+            if (isBlue || isWarmSky) {
+              topSkyCount++;
+            }
+            if (isWarmSky) {
+              warmSkyCount++;
+            }
+          }
+
+          if (y >= splitBottom) {
+            bottomSamples++;
+            if (isSand || isWater) {
+              bottomBeachCount++;
+            }
+          }
+
+          if (isGreen) {
+            greenCount++;
+          }
+        }
+      }
+
+      if (sampled == 0) {
+        return true;
+      }
+
+      final topSkyRatio = topSamples == 0 ? 0.0 : topSkyCount / topSamples;
+      final warmSkyRatio = topSamples == 0 ? 0.0 : warmSkyCount / topSamples;
+      final bottomBeachRatio = bottomSamples == 0 ? 0.0 : bottomBeachCount / bottomSamples;
+      final greenRatio = greenCount / sampled;
+      final blueOverallRatio = blueOverallCount / sampled;
+      final sandOverallRatio = sandOverallCount / sampled;
+
+      final classicBeach = topSkyRatio > 0.20 && bottomBeachRatio > 0.30 && greenRatio < 0.75;
+      final waterDominantBeach =
+          blueOverallRatio > 0.26 && bottomBeachRatio > 0.22 && greenRatio < 0.78;
+      final sunsetBeach = warmSkyRatio > 0.10 && sandOverallRatio > 0.10 && greenRatio < 0.78;
+
+      return classicBeach || waterDominantBeach || sunsetBeach;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  Future<ui.Image> _decodeImage(Uint8List bytes) {
+    final completer = Completer<ui.Image>();
+    ui.decodeImageFromList(bytes, completer.complete);
+    return completer.future;
+  }
+
   Future<void> _handleUpload(BuildContext context, {required bool fromCamera}) async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _loading = true);
     try {
       final picker = ImagePicker();
@@ -34,17 +170,28 @@ class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
         imageQuality: 90,
       );
       if (pickedFile == null) {
-        await AppFeedback.showErrorSheet('No image selected');
+        await AppFeedback.showErrorSheet(l10n.noImageSelected);
         return;
       }
       final bytes = await File(pickedFile.path).readAsBytes();
+
+      final isBeach = await _isLikelyBeachImage(bytes);
+      if (!isBeach) {
+        if (!mounted) return;
+        final shouldUploadAnyway = await _showUploadAnywayDialog();
+        if (!shouldUploadAnyway) {
+          await AppFeedback.showErrorSheet(AppLocalizations.of(context)!.beachImageRequired);
+          return;
+        }
+      }
+
       final base64Image = 'data:image/jpeg;base64,${base64Encode(bytes)}';
 
       // Get access token from AuthProvider
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final accessToken = authProvider.token;
       if (accessToken == null) {
-        await AppFeedback.showErrorSheet('User not authenticated');
+        await AppFeedback.showErrorSheet(l10n.userNotAuthenticated);
         return;
       }
 
@@ -53,8 +200,6 @@ class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
       if (poses != null) {
         if (!mounted) return;
         Navigator.of(context).push(MaterialPageRoute(builder: (_) => ViewPoseScreen(poses: poses)));
-      } else {
-        await AppFeedback.showErrorSheet('Failed to get suggested poses');
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -63,6 +208,7 @@ class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Stack(
       children: [
         Scaffold(
@@ -70,9 +216,13 @@ class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            title: const Text(
-              'Upload Background',
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 22),
+            title: Text(
+              l10n.uploadBackgroundTitle,
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w600,
+                fontSize: 22,
+              ),
             ),
             centerTitle: true,
           ),
@@ -91,22 +241,22 @@ class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.add_a_photo, size: 48, color: Color(0xFF6B4F36)),
-                        SizedBox(height: 12),
+                      children: [
+                        const Icon(Icons.add_a_photo, size: 48, color: Color(0xFF6B4F36)),
+                        const SizedBox(height: 12),
                         Text(
-                          'Upload background',
-                          style: TextStyle(
+                          l10n.uploadBackgroundCardTitle,
+                          style: const TextStyle(
                             color: Color(0xFF6B4F36),
                             fontWeight: FontWeight.w600,
                             fontSize: 20,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
-                          'Select photo from your gallery\nor use the camera',
+                          l10n.uploadBackgroundCardSubtitle,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Color(0xFF6B4F36),
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
