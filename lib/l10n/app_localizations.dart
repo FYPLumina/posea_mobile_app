@@ -830,6 +830,60 @@ abstract class AppLocalizations {
   /// **'Your password has been updated successfully'**
   String get passwordChangedDescription;
 
+  /// No description provided for @beachImageWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Image may not be beach'**
+  String get beachImageWarningTitle;
+
+  /// No description provided for @beachImageWarningMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This image does not look like a beach. Upload anyway?'**
+  String get beachImageWarningMessage;
+
+  /// No description provided for @uploadAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload anyway'**
+  String get uploadAnyway;
+
+  /// No description provided for @beachImageRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please upload a beach image.'**
+  String get beachImageRequired;
+
+  /// No description provided for @uploadBackgroundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Background'**
+  String get uploadBackgroundTitle;
+
+  /// No description provided for @uploadBackgroundCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload background'**
+  String get uploadBackgroundCardTitle;
+
+  /// No description provided for @uploadBackgroundCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select photo from your gallery\nor use the camera'**
+  String get uploadBackgroundCardSubtitle;
+
+  /// No description provided for @noImageSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No image selected'**
+  String get noImageSelected;
+
+  /// No description provided for @userNotAuthenticated.
+  ///
+  /// In en, this message translates to:
+  /// **'User not authenticated'**
+  String get userNotAuthenticated;
+
   /// No description provided for @done.
   ///
   /// In en, this message translates to:

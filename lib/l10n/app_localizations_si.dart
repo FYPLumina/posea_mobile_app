@@ -394,5 +394,34 @@ class AppLocalizationsSi extends AppLocalizations {
   String get passwordChangedDescription => 'ඔබගේ මුරපදය සාර්ථකව යාවත්කාලීන විය';
 
   @override
+  String get beachImageWarningTitle => 'මෙය වෙරළ රූපයක් නොවිය හැක';
+
+  @override
+  String get beachImageWarningMessage =>
+      'මෙම රූපය වෙරළ රූපයක් ලෙස නොපෙනේ. කොහොමහරි upload කරන්නද?';
+
+  @override
+  String get uploadAnyway => 'කොහොමහරි Upload කරන්න';
+
+  @override
+  String get beachImageRequired => 'කරුණාකර වෙරළ රූපයක් upload කරන්න.';
+
+  @override
+  String get uploadBackgroundTitle => 'පසුබිම Upload කරන්න';
+
+  @override
+  String get uploadBackgroundCardTitle => 'පසුබිම Upload කරන්න';
+
+  @override
+  String get uploadBackgroundCardSubtitle =>
+      'ඔබේ ගැලරියෙන් ඡායාරූපයක් තෝරන්න\nහෝ කැමරාව භාවිත කරන්න';
+
+  @override
+  String get noImageSelected => 'රූපයක් තෝරා නැත';
+
+  @override
+  String get userNotAuthenticated => 'පරිශීලකයා තහවුරු වී නැත';
+
+  @override
   String get done => 'හරි';
 }
