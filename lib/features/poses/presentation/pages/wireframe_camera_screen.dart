@@ -43,6 +43,7 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
   Offset _skeletonCenter = const Offset(0.5, 0.55);
   Offset _selectedPoseCenter = const Offset(0.5, 0.55);
 
+// For debugging: log received arguments when screen is opened and when capture button is pressed.
   @override
   void initState() {
     super.initState();
@@ -66,6 +67,9 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
     }
   }
 
+// Load arguments passed via GoRouter when the screen is first opened. 
+//This includes the skeleton data to match against, as well as logging info like pose_id and is_favourite for analytics. 
+//We only want to load these once, so we guard with _didLoadArgs to prevent reloading if dependencies change.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -178,6 +182,7 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
     );
   }
 
+// Parses the skeleton data from the provided JSON string, extracts keypoints and their placements, and updates the target skeleton and UI state accordingly. If placement info is included, it adjusts the skeleton's position and size on screen to match the intended pose layout.
   void _setTargetSkeleton(String? skeletonData) {
     final parsed = _PoseMatcher.parseSkeletonData(skeletonData);
     final placement = _PoseMatcher.parseSkeletonPlacement(skeletonData);
@@ -201,6 +206,7 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
     });
   }
 
+// Clean up resources when the screen is disposed. Stop the camera stream if active, close the pose detector, and dispose the camera controller to free up memory and avoid leaks.
   @override
   void dispose() {
     if (_controller?.value.isStreamingImages == true) {
@@ -211,6 +217,8 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
     super.dispose();
   }
 
+// Build the UI for the wireframe camera screen. This includes a header with a close button and title, an instruction box showing the current match percentage and distance guidance, the camera preview with a custom painter overlay to draw the target skeleton, and a capture button at the bottom.
+// The skeleton color changes to green when the user achieves a good match (90% or above) to provide visual feedback.
   @override
   Widget build(BuildContext context) {
     final bool isMatched = _matchPercentage >= 90;
@@ -351,7 +359,8 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
       ),
     );
   }
-
+// Helper method to build distance instruction based on user's body metrics compared to target skeleton size.
+// It calculates a ratio of user's body width and height to the target skeleton's dimensions, and provides feedback on whether to move closer or further from the camera, along with an estimated distance in centimeters.
   String _buildDistanceInstruction(_BodyMetrics metrics) {
     final targetHeight = _baseSkeletonHeightFactor.clamp(0.20, 0.99);
     final targetWidth = _baseSkeletonWidthFactor.clamp(0.15, 0.95);
@@ -374,6 +383,9 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
   }
 }
 
+// Custom painter to draw the target skeleton wireframe on top of the camera preview.
+// It takes the target keypoints and connections, as well as styling parameters like color and size factors, and renders lines between connected joints and dots at each joint position.
+// The keypoints are normalized and scaled to fit within the defined skeleton area on screen.
 class _PoseWireframePainter extends CustomPainter {
   final Map<String, Offset> points;
   final List<List<String>> connections;
@@ -391,6 +403,8 @@ class _PoseWireframePainter extends CustomPainter {
     required this.heightFactor,
   });
 
+// The paint method is called to render the skeleton wireframe on the canvas. 
+//It calculates the bounding box of the keypoints to determine how to scale and position them within the defined skeleton area.
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -439,6 +453,8 @@ class _PoseWireframePainter extends CustomPainter {
     }
   }
 
+// Determines whether the painter should repaint when the widget is updated.
+// It compares the current properties with the old ones, and returns true if any of the key properties (color, points, connections, center, widthFactor, heightFactor) have changed, indicating that the skeleton wireframe needs to be redrawn with new data or styling.
   @override
   bool shouldRepaint(covariant _PoseWireframePainter oldDelegate) {
     return oldDelegate.color != color ||

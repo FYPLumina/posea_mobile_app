@@ -9,6 +9,9 @@ class AppLanguageOption {
   const AppLanguageOption({required this.code, required this.name});
 }
 
+// LanguageProvider manages the application's language settings. 
+//It loads the saved language preference from secure storage on initialization, provides a method to change the language, and notifies listeners of any changes. 
+//It also defines the supported languages and their corresponding locale codes.
 class LanguageProvider extends ChangeNotifier {
   static const List<AppLanguageOption> supportedLanguages = [
     AppLanguageOption(code: 'en', name: 'English'),
@@ -17,12 +20,14 @@ class LanguageProvider extends ChangeNotifier {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
+// The current locale of the application, initialized to English by default.
   Locale _locale = const Locale('en');
   Locale get locale => _locale;
 
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
 
+// A list of supported locales derived from the supported language options, used for localization purposes in the app.
   List<Locale> get supportedLocales =>
       supportedLanguages.map((language) => Locale(language.code)).toList();
 
@@ -30,6 +35,8 @@ class LanguageProvider extends ChangeNotifier {
     _loadSavedLanguage();
   }
 
+// Loads the saved language preference from secure storage. 
+//If a valid saved language code is found, it updates the current locale.
   Future<void> _loadSavedLanguage() async {
     final savedCode = await _storage.read(key: AppConstants.prefsKeyLanguage);
     if (savedCode != null && _isSupportedLanguage(savedCode)) {
