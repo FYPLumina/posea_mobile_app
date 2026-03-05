@@ -85,6 +85,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   hintText: l10n.enterNewPassword,
                   controller: _newPasswordController,
                   obscureText: true,
+                  enablePasswordToggle: true,
                   validator: Validators.validatePassword,
                 ),
                 const SizedBox(height: 6),

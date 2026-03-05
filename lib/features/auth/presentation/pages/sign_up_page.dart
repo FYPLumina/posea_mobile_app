@@ -98,6 +98,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   hintText: l10n.enterYourPassword,
                   lable: l10n.password,
                   obscureText: true,
+                  enablePasswordToggle: true,
                   onChanged: (_) {
                     final auth = Provider.of<AuthProvider>(context, listen: false);
                     auth.clearError();
@@ -113,6 +114,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   hintText: l10n.confirmYourPassword,
                   lable: l10n.confirmPassword,
                   obscureText: true,
+                  enablePasswordToggle: true,
                   onChanged: (_) {
                     final auth = Provider.of<AuthProvider>(context, listen: false);
                     auth.clearError();

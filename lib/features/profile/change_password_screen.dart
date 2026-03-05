@@ -72,6 +72,7 @@ class ChangePasswordScreen extends StatelessWidget {
                     hintText: l10n.enterYourOldPassword,
                     controller: oldPasswordController,
                     obscureText: true,
+                    enablePasswordToggle: true,
                     validator: (value) =>
                         Validators.validateRequired(value, label: l10n.oldPassword),
                     onChanged: (_) {
@@ -93,6 +94,7 @@ class ChangePasswordScreen extends StatelessWidget {
                     hintText: l10n.enterYourNewPassword,
                     controller: newPasswordController,
                     obscureText: true,
+                    enablePasswordToggle: true,
                     validator: Validators.validatePassword,
                     onChanged: (_) {
                       final auth = Provider.of<AuthProvider>(context, listen: false);
@@ -115,6 +117,7 @@ class ChangePasswordScreen extends StatelessWidget {
                     hintText: l10n.enterPasswordAgain,
                     controller: confirmPasswordController,
                     obscureText: true,
+                    enablePasswordToggle: true,
                     validator: (value) {
                       final requiredValidation = Validators.validateRequired(
                         value,

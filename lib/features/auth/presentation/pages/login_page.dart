@@ -121,6 +121,7 @@ class _LoginPageState extends State<LoginPage> {
                       CustomTextInputField(
                         hintText: l10n.enterYourPassword,
                         obscureText: true,
+                        enablePasswordToggle: true,
                         controller: _passwordController,
                         validator: (value) =>
                             Validators.validateRequired(value, label: l10n.password),
