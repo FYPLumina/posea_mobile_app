@@ -299,6 +299,108 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyPolicy => 'Privacy Policy';
 
   @override
+  String get privacyPolicyHeading =>
+      'Privacy Policy for Posea - Pose Suggesting App';
+
+  @override
+  String get privacyPolicyLastUpdated => 'Last Updated: March 2026';
+
+  @override
+  String get privacyPolicySection1Title => '1. Introduction';
+
+  @override
+  String get privacyPolicySection1Body =>
+      'Welcome to Posea, a mobile application developed by Team LUMINA at the Faculty of Applied Sciences, Rajarata University of Sri Lanka.\n\nPosea helps users capture better beach photographs by suggesting suitable poses using artificial intelligence (AI) based on the background environment and lighting conditions.\n\nThis Privacy Policy explains how we collect, use, and protect your information when you use the Posea application.';
+
+  @override
+  String get privacyPolicySection2Title => '2. Information We Collect';
+
+  @override
+  String get privacyPolicySection21Title => '2.1 Account Information';
+
+  @override
+  String get privacyPolicySection21Body =>
+      'When you register in the Posea app, we may collect the following information:\n\n- Full name\n- Email address\n- Password\n- Profile picture (optional)\n\nThis information is required to create and manage your user account.';
+
+  @override
+  String get privacyPolicySection22Title => '2.2 Image Data';
+
+  @override
+  String get privacyPolicySection22Body =>
+      'Posea allows users to upload or capture images to generate pose suggestions.\n\nThe app may access:\n\n- Photos captured using the device camera\n- Images selected from the device gallery\n\nThese images are used only for pose suggestion analysis and improving the user experience.';
+
+  @override
+  String get privacyPolicySection23Title => '2.3 Device and Usage Information';
+
+  @override
+  String get privacyPolicySection23Body =>
+      'We may collect limited device information such as:\n\n- Device type\n- Operating system version\n- App performance and usage data\n\nThis helps us improve the reliability and functionality of the application.';
+
+  @override
+  String get privacyPolicySection3Title => '3. How We Use Your Information';
+
+  @override
+  String get privacyPolicySection3Body =>
+      'We use the collected information for the following purposes:\n\n- To create and manage user accounts\n- To authenticate users during login\n- To analyze uploaded images using AI models\n- To generate pose suggestions based on the background environment\n- To display wireframe pose guidance for users\n- To allow users to capture and save photos\n- To improve application performance and user experience\n\nThe AI model analyzes the uploaded background image to identify environment conditions such as lighting and scene type, then retrieves suitable poses from the pose dataset.\n\nLumina_20_21_SRS[1.3]_Revised';
+
+  @override
+  String get privacyPolicySection4Title => '4. Camera and Storage Permissions';
+
+  @override
+  String get privacyPolicySection4Body =>
+      'Posea may request the following permissions:\n\nCamera Access\nUsed to:\n- Capture background images\n- Display live camera preview\n- Capture the final photo\n\nGallery / Storage Access\nUsed to:\n- Upload existing images from the gallery\n- Save captured photos to the device gallery\n\nThese permissions are requested only when required for specific features.';
+
+  @override
+  String get privacyPolicySection5Title => '5. Data Storage and Security';
+
+  @override
+  String get privacyPolicySection5Body =>
+      'User data is stored securely in the application database.\n\nWe implement reasonable security measures to protect your information from:\n\n- Unauthorized access\n- Data loss\n- Misuse or alteration\n\nPasswords are stored securely and protected using standard authentication practices.';
+
+  @override
+  String get privacyPolicySection6Title => '6. Data Sharing';
+
+  @override
+  String get privacyPolicySection6Body =>
+      'Posea does not sell, rent, or share personal information with third parties.\n\nHowever, limited information may be shared in the following situations:\n\n- When required by law\n- To protect the security of the system\n- For system maintenance and technical support';
+
+  @override
+  String get privacyPolicySection7Title => '7. User Control Over Data';
+
+  @override
+  String get privacyPolicySection7Body =>
+      'Users have full control over their account and data. Through the Manage Account feature, users can:\n\n- Update personal information\n- Change their password\n- Log out from the application\n- Delete their account permanently\n\nOnce an account is deleted, the associated data cannot be recovered.\n\nLumina_20_21_SRS[1.3]_Revised';
+
+  @override
+  String get privacyPolicySection8Title => '8. Photo Storage';
+
+  @override
+  String get privacyPolicySection8Body =>
+      'Photos captured using the Posea app are saved only on the user\'s device gallery unless the user chooses to store them elsewhere.\n\nThe application does not automatically publish or share photos online.';
+
+  @override
+  String get privacyPolicySection9Title => '9. Children\'s Privacy';
+
+  @override
+  String get privacyPolicySection9Body =>
+      'Posea is not intended for children under the age of 13.\nWe do not knowingly collect personal information from children.\n\nIf we discover that a child has provided personal information, we will delete it immediately.';
+
+  @override
+  String get privacyPolicySection10Title =>
+      '10. Changes to This Privacy Policy';
+
+  @override
+  String get privacyPolicySection10Body =>
+      'We may update this Privacy Policy from time to time to reflect changes in the application or legal requirements.\n\nUsers will be notified of important updates within the application.';
+
+  @override
+  String get privacyPolicySection11Title => '11. Contact Information';
+
+  @override
+  String get privacyPolicySection11Body =>
+      'If you have questions about this Privacy Policy, please contact:\n\nTeam LUMINA\nFaculty of Applied Sciences\nRajarata University of Sri Lanka';
+
+  @override
   String get logOut => 'Log Out';
 
   @override

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +21,46 @@ class FavouritesPage extends StatefulWidget {
 
 class _FavouritesPageState extends State<FavouritesPage> {
   late Future<List<CapturedImage>> _favouritesFuture = Future.value([]);
+
+  Future<void> _showImagePreview(Uint8List bytes) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(16),
+          child: Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  color: Colors.black,
+                  child: InteractiveViewer(
+                    minScale: 1,
+                    maxScale: 4,
+                    child: Image.memory(bytes, fit: BoxFit.contain),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.black54,
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -87,8 +128,10 @@ class _FavouritesPageState extends State<FavouritesPage> {
                   '',
                 );
                 Widget imageWidget;
+                Uint8List? imageBytes;
                 try {
                   final bytes = base64Decode(base64Str);
+                  imageBytes = Uint8List.fromList(bytes);
                   imageWidget = Image.memory(
                     bytes,
                     height: double.infinity,
@@ -105,7 +148,10 @@ class _FavouritesPageState extends State<FavouritesPage> {
                 }
                 return Stack(
                   children: [
-                    ClipRRect(borderRadius: BorderRadius.circular(16), child: imageWidget),
+                    GestureDetector(
+                      onTap: imageBytes == null ? null : () => _showImagePreview(imageBytes!),
+                      child: ClipRRect(borderRadius: BorderRadius.circular(16), child: imageWidget),
+                    ),
                     Positioned(
                       top: 12,
                       right: 12,

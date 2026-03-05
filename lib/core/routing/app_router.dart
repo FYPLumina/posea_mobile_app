@@ -16,6 +16,7 @@ import 'package:posea_mobile_app/features/poses/presentation/pages/photo_preview
 import 'package:posea_mobile_app/features/poses/presentation/pages/preview_pose_screen.dart';
 import 'package:posea_mobile_app/features/poses/presentation/pages/wireframe_camera_screen.dart';
 import 'package:posea_mobile_app/features/profile/change_password_screen.dart';
+import 'package:posea_mobile_app/features/profile/privacy_policy_screen.dart';
 import 'package:posea_mobile_app/features/profile/profile_screens.dart';
 import 'package:posea_mobile_app/features/splash/presentation/pages/splash_screen.dart';
 import 'navigation_service.dart';
@@ -119,6 +120,14 @@ class AppRouter {
         builder: (context, state) {
           // Lazy load the change password screen
           return const ChangePasswordScreen();
+        },
+      ),
+      // Privacy policy route
+      GoRoute(
+        path: RouteNames.privacyPolicy,
+        name: RouteNames.privacyPolicy,
+        builder: (context, state) {
+          return const PrivacyPolicyScreen();
         },
       ),
       // Background upload route
