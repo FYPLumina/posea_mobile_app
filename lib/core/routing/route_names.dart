@@ -26,6 +26,7 @@ class RouteNames {
   static const String profile = '/profile';
   static const String editProfile = '/profile/edit';
   static const String changePassword = '/profile/change-password';
+  static const String privacyPolicy = '/profile/privacy-policy';
 
   // Add more route names as needed
   // Example:

@@ -297,7 +297,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     SettingsOption(
                       icon: Icons.privacy_tip_outlined,
                       label: l10n.privacyPolicy,
-                      onTap: () {},
+                      onTap: () {
+                        context.go(RouteNames.privacyPolicy);
+                      },
                     ),
                     SettingsOption(
                       icon: Icons.logout,

@@ -644,6 +644,180 @@ abstract class AppLocalizations {
   /// **'Privacy Policy'**
   String get privacyPolicy;
 
+  /// No description provided for @privacyPolicyHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy for Posea - Pose Suggesting App'**
+  String get privacyPolicyHeading;
+
+  /// No description provided for @privacyPolicyLastUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Updated: March 2026'**
+  String get privacyPolicyLastUpdated;
+
+  /// No description provided for @privacyPolicySection1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Introduction'**
+  String get privacyPolicySection1Title;
+
+  /// No description provided for @privacyPolicySection1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Posea, a mobile application developed by Team LUMINA at the Faculty of Applied Sciences, Rajarata University of Sri Lanka.\n\nPosea helps users capture better beach photographs by suggesting suitable poses using artificial intelligence (AI) based on the background environment and lighting conditions.\n\nThis Privacy Policy explains how we collect, use, and protect your information when you use the Posea application.'**
+  String get privacyPolicySection1Body;
+
+  /// No description provided for @privacyPolicySection2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'2. Information We Collect'**
+  String get privacyPolicySection2Title;
+
+  /// No description provided for @privacyPolicySection21Title.
+  ///
+  /// In en, this message translates to:
+  /// **'2.1 Account Information'**
+  String get privacyPolicySection21Title;
+
+  /// No description provided for @privacyPolicySection21Body.
+  ///
+  /// In en, this message translates to:
+  /// **'When you register in the Posea app, we may collect the following information:\n\n- Full name\n- Email address\n- Password\n- Profile picture (optional)\n\nThis information is required to create and manage your user account.'**
+  String get privacyPolicySection21Body;
+
+  /// No description provided for @privacyPolicySection22Title.
+  ///
+  /// In en, this message translates to:
+  /// **'2.2 Image Data'**
+  String get privacyPolicySection22Title;
+
+  /// No description provided for @privacyPolicySection22Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Posea allows users to upload or capture images to generate pose suggestions.\n\nThe app may access:\n\n- Photos captured using the device camera\n- Images selected from the device gallery\n\nThese images are used only for pose suggestion analysis and improving the user experience.'**
+  String get privacyPolicySection22Body;
+
+  /// No description provided for @privacyPolicySection23Title.
+  ///
+  /// In en, this message translates to:
+  /// **'2.3 Device and Usage Information'**
+  String get privacyPolicySection23Title;
+
+  /// No description provided for @privacyPolicySection23Body.
+  ///
+  /// In en, this message translates to:
+  /// **'We may collect limited device information such as:\n\n- Device type\n- Operating system version\n- App performance and usage data\n\nThis helps us improve the reliability and functionality of the application.'**
+  String get privacyPolicySection23Body;
+
+  /// No description provided for @privacyPolicySection3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'3. How We Use Your Information'**
+  String get privacyPolicySection3Title;
+
+  /// No description provided for @privacyPolicySection3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'We use the collected information for the following purposes:\n\n- To create and manage user accounts\n- To authenticate users during login\n- To analyze uploaded images using AI models\n- To generate pose suggestions based on the background environment\n- To display wireframe pose guidance for users\n- To allow users to capture and save photos\n- To improve application performance and user experience\n\nThe AI model analyzes the uploaded background image to identify environment conditions such as lighting and scene type, then retrieves suitable poses from the pose dataset.\n\nLumina_20_21_SRS[1.3]_Revised'**
+  String get privacyPolicySection3Body;
+
+  /// No description provided for @privacyPolicySection4Title.
+  ///
+  /// In en, this message translates to:
+  /// **'4. Camera and Storage Permissions'**
+  String get privacyPolicySection4Title;
+
+  /// No description provided for @privacyPolicySection4Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Posea may request the following permissions:\n\nCamera Access\nUsed to:\n- Capture background images\n- Display live camera preview\n- Capture the final photo\n\nGallery / Storage Access\nUsed to:\n- Upload existing images from the gallery\n- Save captured photos to the device gallery\n\nThese permissions are requested only when required for specific features.'**
+  String get privacyPolicySection4Body;
+
+  /// No description provided for @privacyPolicySection5Title.
+  ///
+  /// In en, this message translates to:
+  /// **'5. Data Storage and Security'**
+  String get privacyPolicySection5Title;
+
+  /// No description provided for @privacyPolicySection5Body.
+  ///
+  /// In en, this message translates to:
+  /// **'User data is stored securely in the application database.\n\nWe implement reasonable security measures to protect your information from:\n\n- Unauthorized access\n- Data loss\n- Misuse or alteration\n\nPasswords are stored securely and protected using standard authentication practices.'**
+  String get privacyPolicySection5Body;
+
+  /// No description provided for @privacyPolicySection6Title.
+  ///
+  /// In en, this message translates to:
+  /// **'6. Data Sharing'**
+  String get privacyPolicySection6Title;
+
+  /// No description provided for @privacyPolicySection6Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Posea does not sell, rent, or share personal information with third parties.\n\nHowever, limited information may be shared in the following situations:\n\n- When required by law\n- To protect the security of the system\n- For system maintenance and technical support'**
+  String get privacyPolicySection6Body;
+
+  /// No description provided for @privacyPolicySection7Title.
+  ///
+  /// In en, this message translates to:
+  /// **'7. User Control Over Data'**
+  String get privacyPolicySection7Title;
+
+  /// No description provided for @privacyPolicySection7Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Users have full control over their account and data. Through the Manage Account feature, users can:\n\n- Update personal information\n- Change their password\n- Log out from the application\n- Delete their account permanently\n\nOnce an account is deleted, the associated data cannot be recovered.\n\nLumina_20_21_SRS[1.3]_Revised'**
+  String get privacyPolicySection7Body;
+
+  /// No description provided for @privacyPolicySection8Title.
+  ///
+  /// In en, this message translates to:
+  /// **'8. Photo Storage'**
+  String get privacyPolicySection8Title;
+
+  /// No description provided for @privacyPolicySection8Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos captured using the Posea app are saved only on the user\'s device gallery unless the user chooses to store them elsewhere.\n\nThe application does not automatically publish or share photos online.'**
+  String get privacyPolicySection8Body;
+
+  /// No description provided for @privacyPolicySection9Title.
+  ///
+  /// In en, this message translates to:
+  /// **'9. Children\'s Privacy'**
+  String get privacyPolicySection9Title;
+
+  /// No description provided for @privacyPolicySection9Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Posea is not intended for children under the age of 13.\nWe do not knowingly collect personal information from children.\n\nIf we discover that a child has provided personal information, we will delete it immediately.'**
+  String get privacyPolicySection9Body;
+
+  /// No description provided for @privacyPolicySection10Title.
+  ///
+  /// In en, this message translates to:
+  /// **'10. Changes to This Privacy Policy'**
+  String get privacyPolicySection10Title;
+
+  /// No description provided for @privacyPolicySection10Body.
+  ///
+  /// In en, this message translates to:
+  /// **'We may update this Privacy Policy from time to time to reflect changes in the application or legal requirements.\n\nUsers will be notified of important updates within the application.'**
+  String get privacyPolicySection10Body;
+
+  /// No description provided for @privacyPolicySection11Title.
+  ///
+  /// In en, this message translates to:
+  /// **'11. Contact Information'**
+  String get privacyPolicySection11Title;
+
+  /// No description provided for @privacyPolicySection11Body.
+  ///
+  /// In en, this message translates to:
+  /// **'If you have questions about this Privacy Policy, please contact:\n\nTeam LUMINA\nFaculty of Applied Sciences\nRajarata University of Sri Lanka'**
+  String get privacyPolicySection11Body;
+
   /// No description provided for @logOut.
   ///
   /// In en, this message translates to:

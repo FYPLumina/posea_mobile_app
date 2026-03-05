@@ -29,12 +29,97 @@ class _GalleryPageState extends State<GalleryPage> {
   late Future<List<CapturedImage>> _imagesFuture;
   List<CapturedImage> _images = [];
   String? _accessToken;
+  final Set<int> _deletingImageIds = <int>{};
 
   @override
   void initState() {
     super.initState();
     print('GalleryPage initState called');
     _imagesFuture = _fetchImages();
+  }
+
+  Future<void> _deleteImage(CapturedImage image) async {
+    if (_accessToken == null) return;
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete image?'),
+        content: const Text('This will remove the captured image from your gallery.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+        ],
+      ),
+    );
+
+    if (shouldDelete != true) return;
+
+    setState(() {
+      _deletingImageIds.add(image.capImageId);
+    });
+
+    final api = GalleryApiService(AppConfig.baseUrl.replaceAll('/api', ''));
+    final deleted = await api.deleteCapturedImage(
+      accessToken: _accessToken!,
+      capImageId: image.capImageId,
+    );
+
+    if (!mounted) return;
+
+    if (deleted) {
+      setState(() {
+        _images.removeWhere((img) => img.capImageId == image.capImageId);
+        _deletingImageIds.remove(image.capImageId);
+      });
+      await AppFeedback.showSuccessSheet('Deleted', 'Image deleted from gallery.');
+      return;
+    }
+
+    setState(() {
+      _deletingImageIds.remove(image.capImageId);
+    });
+  }
+
+  Future<void> _showImagePreview(Uint8List bytes) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(16),
+          child: Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  color: Colors.black,
+                  child: InteractiveViewer(
+                    minScale: 1,
+                    maxScale: 4,
+                    child: Image.memory(bytes, fit: BoxFit.contain),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.black54,
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<List<CapturedImage>> _fetchImages() async {
@@ -104,6 +189,7 @@ class _GalleryPageState extends State<GalleryPage> {
             itemBuilder: (context, index) {
               print('itemBuilder called for index \\${index}');
               final img = images[index];
+              final isDeleting = _deletingImageIds.contains(img.capImageId);
               // Always remove the data URL prefix if present
               String base64StrRaw = img.capturedImageBase64.trim();
               print(
@@ -123,8 +209,10 @@ class _GalleryPageState extends State<GalleryPage> {
                     base64Str.substring(0, base64Str.length > 100 ? 100 : base64Str.length),
               );
               Widget imageWidget;
+              Uint8List? imageBytes;
               try {
                 final bytes = base64Decode(base64Str);
+                imageBytes = Uint8List.fromList(bytes);
                 print('Image \\${index} bytes length: ' + bytes.length.toString());
                 imageWidget = Image.memory(
                   bytes,
@@ -147,7 +235,32 @@ class _GalleryPageState extends State<GalleryPage> {
               }
               return Stack(
                 children: [
-                  ClipRRect(borderRadius: BorderRadius.circular(16), child: imageWidget),
+                  GestureDetector(
+                    onTap: imageBytes == null ? null : () => _showImagePreview(imageBytes!),
+                    child: ClipRRect(borderRadius: BorderRadius.circular(16), child: imageWidget),
+                  ),
+                  Positioned(
+                    top: 12,
+                    left: 4,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.white.withOpacity(0.7),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: isDeleting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.delete_outline, color: Colors.redAccent),
+                        onPressed: isDeleting ? null : () => _deleteImage(img),
+                        iconSize: 22,
+                        padding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ),
                   Positioned(
                     top: 12,
                     right: 12,
