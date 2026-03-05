@@ -221,7 +221,7 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
 // The skeleton color changes to green when the user achieves a good match (90% or above) to provide visual feedback.
   @override
   Widget build(BuildContext context) {
-    final bool isMatched = _matchPercentage >= 90;
+    final bool isMatched = _matchPercentage >= 80;
     final Color skeletonColor = isMatched ? Colors.green : Colors.white;
 
     return Scaffold(
@@ -722,7 +722,7 @@ class _PoseMatcher {
     required double dx,
     required double dy,
   }) {
-    if (percentage >= 90) {
+    if (percentage >= 80) {
       return 'Excellent! Hold this pose';
     }
     if (joint == null) {
