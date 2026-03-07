@@ -318,18 +318,18 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> verifyEmailToken(String verificationToken) async {
+  Future<bool> verifyEmailOtp({required String email, required String otp}) async {
     _loading = true;
     _error = null;
     notifyListeners();
     try {
-      final res = await api.verifyEmail(token: verificationToken);
+      final res = await api.verifyEmail(email: email, otp: otp);
       if (res['success'] == true) {
         _authFlowState = AuthFlowState.verified;
         _error = null;
         return true;
       } else if (res['_statusCode'] == 400) {
-        _error = 'Token invalid or expired';
+        _error = 'OTP invalid or expired';
         return false;
       } else {
         _error = res['error']?.toString() ?? 'Email verification failed';

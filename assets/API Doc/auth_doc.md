@@ -134,6 +134,26 @@ Replace `<your-server-ip>` with your computer's IP address or `localhost` if tes
 
 ---
 
+### 7. Verify Email
+- **POST** `/verify-email`
+- **Request Body**:
+  ```json
+  {
+    "email": "user@example.com",
+    "otp": "123456"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "success": true,
+    "data": true,
+    "error": null
+  }
+  ```
+
+---
+
 
 ---
 

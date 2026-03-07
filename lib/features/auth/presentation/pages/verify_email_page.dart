@@ -9,9 +9,9 @@ import 'package:provider/provider.dart';
 import 'package:posea_mobile_app/l10n/app_localizations.dart';
 
 class VerifyEmailPage extends StatefulWidget {
-  const VerifyEmailPage({super.key, this.initialToken, this.initialEmail});
+  const VerifyEmailPage({super.key, this.initialOtp, this.initialEmail});
 
-  final String? initialToken;
+  final String? initialOtp;
   final String? initialEmail;
 
   @override
@@ -19,38 +19,51 @@ class VerifyEmailPage extends StatefulWidget {
 }
 
 class _VerifyEmailPageState extends State<VerifyEmailPage> {
-  late final TextEditingController _tokenController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _otpController;
   bool _hasTriedAutoVerify = false;
 
   @override
   void initState() {
     super.initState();
-    _tokenController = TextEditingController(text: widget.initialToken ?? '');
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    _emailController = TextEditingController(text: widget.initialEmail ?? auth.pendingEmail ?? '');
+    _otpController = TextEditingController(text: widget.initialOtp ?? '');
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if ((widget.initialToken ?? '').trim().isNotEmpty && !_hasTriedAutoVerify) {
+      final hasEmail = _emailController.text.trim().isNotEmpty;
+      final hasOtp = _otpController.text.trim().isNotEmpty;
+      if (hasEmail && hasOtp && !_hasTriedAutoVerify) {
         _hasTriedAutoVerify = true;
-        _verifyToken();
+        _verifyEmail();
       }
     });
   }
 
   @override
   void dispose() {
-    _tokenController.dispose();
+    _emailController.dispose();
+    _otpController.dispose();
     super.dispose();
   }
 
-  Future<void> _verifyToken() async {
+  Future<void> _verifyEmail() async {
     final l10n = AppLocalizations.of(context)!;
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    final token = _tokenController.text.trim();
+    final email = _emailController.text.trim();
+    final otp = _otpController.text.trim();
 
-    if (token.isEmpty) {
+    if (email.isEmpty) {
+      await AppFeedback.showErrorSheet(l10n.pleaseEnterYourEmail);
+      return;
+    }
+
+    if (otp.isEmpty) {
       await AppFeedback.showErrorSheet(l10n.pleaseEnterVerificationToken);
       return;
     }
 
-    final success = await auth.verifyEmailToken(token);
+    auth.setPendingEmail(email);
+    final success = await auth.verifyEmailOtp(email: email, otp: otp);
     if (!mounted) return;
 
     if (success) {
@@ -101,15 +114,22 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
               ),
               const SizedBox(height: 24),
               CustomTextInputField(
+                hintText: l10n.enterYourEmail,
+                keyboardType: TextInputType.emailAddress,
+                controller: _emailController,
+              ),
+              const SizedBox(height: 12),
+              CustomTextInputField(
                 hintText: l10n.enterVerificationToken,
-                controller: _tokenController,
+                keyboardType: TextInputType.number,
+                controller: _otpController,
               ),
               const Spacer(),
               CustomButton(
                 label: auth.loading ? l10n.verifying : l10n.verifyEmail,
                 backgroundColor: const Color(0xFF9B8572),
                 textColor: Colors.white,
-                onPressed: auth.loading ? null : _verifyToken,
+                onPressed: auth.loading ? null : _verifyEmail,
               ),
               const SizedBox(height: 12),
               CustomButton(
@@ -117,7 +137,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                 backgroundColor: Colors.white,
                 textColor: const Color(0xFF8B6F47),
                 onPressed: () {
-                  final email = widget.initialEmail ?? auth.pendingEmail ?? '';
+                  final email = _emailController.text.trim();
                   context.go(
                     '${RouteNames.verificationPending}?email=${Uri.encodeComponent(email)}',
                   );

@@ -104,7 +104,10 @@ class _VerificationPendingPageState extends State<VerificationPendingPage> {
                 label: l10n.verifyNow,
                 backgroundColor: Colors.white,
                 textColor: const Color(0xFF8B6F47),
-                onPressed: () => context.go(RouteNames.verifyEmail),
+                onPressed: () {
+                  final email = _emailController.text.trim();
+                  context.go('${RouteNames.verifyEmail}?email=${Uri.encodeComponent(email)}');
+                },
               ),
               const SizedBox(height: 12),
               CustomButton(

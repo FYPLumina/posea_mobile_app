@@ -73,7 +73,7 @@ class AppRouter {
         path: RouteNames.verifyEmail,
         name: RouteNames.verifyEmail,
         builder: (context, state) => VerifyEmailPage(
-          initialToken: state.uri.queryParameters['token'],
+          initialOtp: state.uri.queryParameters['otp'] ?? state.uri.queryParameters['token'],
           initialEmail: state.uri.queryParameters['email'],
         ),
       ),

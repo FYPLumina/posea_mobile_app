@@ -203,14 +203,14 @@ class AuthApi {
     return _decodeResponseWithStatus(response);
   }
 
-  Future<Map<String, dynamic>> verifyEmail({required String token}) async {
+  Future<Map<String, dynamic>> verifyEmail({required String email, required String otp}) async {
     _logger.i('POST $baseUrl/auth/verify-email');
-    _logger.i('Request body: {token: $token}');
+    _logger.i('Request body: {email: $email, otp: $otp}');
     final response = await _client.sendRaw(
       () => http.post(
         Uri.parse('$baseUrl/auth/verify-email'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'token': token}),
+        body: jsonEncode({'email': email, 'otp': otp}),
       ),
     );
     _logger.i('Response: ${response.statusCode} ${response.body}');
