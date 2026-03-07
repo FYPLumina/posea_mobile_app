@@ -7,7 +7,6 @@ import 'package:posea_mobile_app/features/auth/application/auth_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/core/routing/route_names.dart';
 import 'package:posea_mobile_app/core/widgets/custom_bottom_navigation.dart';
-import 'package:posea_mobile_app/core/widgets/search_input_field.dart';
 import 'package:posea_mobile_app/features/home/presentation/widgets/greeting_search_widgets.dart';
 
 import 'package:posea_mobile_app/features/home/presentation/widgets/pose_of_the_day_card.dart';
