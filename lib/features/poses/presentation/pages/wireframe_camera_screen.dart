@@ -9,14 +9,17 @@ import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/core/utils/logger.dart';
 
+// This screen implements a wireframe camera view that guides users to match their body pose to a target skeleton. 
+//It uses the device camera and ML Kit's pose detection to analyze the user's posture in real-time, providing feedback on how closely they match the target pose and instructions on how to adjust their position for a better match. The target skeleton can be customized via JSON data passed as an argument when navigating to this screen.
 class WireframeCameraScreen extends StatefulWidget {
   final String? skeletonData;
   const WireframeCameraScreen({Key? key, this.skeletonData}) : super(key: key);
 
+// The createState method creates the mutable state for this screen, which will manage the camera feed, pose detection, and UI updates based on the user's pose matching against the target skeleton.
   @override
   State<WireframeCameraScreen> createState() => _WireframeCameraScreenState();
 }
-
+// The state class for the WireframeCameraScreen manages the camera controller, pose detection, and the logic for comparing the user's pose to the target skeleton. for the user's pose to the targret skeleton.
 class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
   CameraController? _controller;
   List<CameraDescription>? _cameras;
@@ -43,7 +46,8 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
   Offset _skeletonCenter = const Offset(0.5, 0.55);
   Offset _selectedPoseCenter = const Offset(0.5, 0.55);
 
-// For debugging: log received arguments when screen is opened and when capture button is pressed.
+// The initState method is called when the screen is first created. 
+//It initializes the camera by fetching the available cameras and setting up the camera controller to start streaming images for pose detection. 
   @override
   void initState() {
     super.initState();
@@ -67,9 +71,8 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
     }
   }
 
-// Load arguments passed via GoRouter when the screen is first opened. 
-//This includes the skeleton data to match against, as well as logging info like pose_id and is_favourite for analytics. 
-//We only want to load these once, so we guard with _didLoadArgs to prevent reloading if dependencies change.
+// The didChangeDependencies method is called after initState and whenever the dependencies of the state change.
+// It checks if the screen has already loaded its arguments to avoid redundant processing. If not,
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -590,6 +593,8 @@ class _PoseMatcher {
     }
   }
 
+// Normalizes the keypoints to fit within a unit box (0 to 1 range) based on the bounding box of the provided points.
+
   static Map<String, Offset> extractUserKeypoints(Pose pose) {
     final Map<String, PoseLandmarkType> keyMap = {
       'nose': PoseLandmarkType.nose,
@@ -621,6 +626,7 @@ class _PoseMatcher {
     return _normalizeToUnitBox(points);
   }
 
+// Normalizes the provided keypoints to fit within a unit box (0 to 1 range) based on the bounding box of the points. This ensures that the pose matching is scale-invariant and focuses on the relative positions of joints rather than their absolute coordinates.
   static _PoseMatchResult calculateMatch({
     required Map<String, Offset> target,
     required Map<String, Offset> user,
@@ -667,6 +673,8 @@ class _PoseMatcher {
     return _PoseMatchResult(matchPercentage: percentage, instruction: instruction);
   }
 
+// bodyMetrics extraction method calculates the width and height of the user's detected pose based on the bounding box of key landmarks. 
+//It normalizes these dimensions by the image size to provide a scale-invariant measure of the user's body size, which can be used to give feedback on whether they are too close or too far from the camera compared to the target skeleton.
   static _BodyMetrics? extractBodyMetrics(
     Pose pose, {
     required double imageWidth,
@@ -716,6 +724,8 @@ class _PoseMatcher {
     return _BodyMetrics(width: width, height: height);
   }
 
+// Builds an instruction string based on the user's current match percentage to the target pose, the joint that is furthest off, and the direction they need to adjust to improve their match. 
+//It provides specific feedback on which joint to focus on and whether to move up/down or left/right to better align with the target skeleton.
   static String _buildInstruction({
     required int percentage,
     required String? joint,
@@ -746,6 +756,8 @@ class _PoseMatcher {
     return 'Adjust $prettyJoint: ${movements.join(' and ')}';
   }
 
+// Extracts keypoints from a dynamic decoded JSON structure, supporting various formats such as lists of keypoint objects or maps with keypoint data.
+// It normalizes joint names and coordinates to create a consistent mapping of joint names to their corresponding 2D positions, which can then be used for pose matching against the target skeleton.
   static Map<String, Offset> _extractFromDynamic(dynamic decoded) {
     final Map<String, Offset> points = {};
 
@@ -790,6 +802,7 @@ class _PoseMatcher {
     return points;
   }
 
+// Helper method to extract an Offset from a dynamic value that may represent a point in various formats, such as a map with 'x' and 'y' keys or a list with two elements.
   static Offset? _offsetFromAny(dynamic value) {
     if (value is Map) {
       final x = _toDouble(value['x'] ?? value['X'] ?? value['dx']);
@@ -809,6 +822,8 @@ class _PoseMatcher {
     return null;
   }
 
+// Helper method to convert a dynamic value to a double, supporting both numeric types and strings that can be parsed as doubles. 
+//This is used to handle various formats of coordinate data in the input skeleton data.
   static double? _toDouble(dynamic value) {
     if (value is num) {
       return value.toDouble();
@@ -819,6 +834,7 @@ class _PoseMatcher {
     return null;
   }
 
+// Normalizes joint names by trimming whitespace, converting to lowercase, replacing common separators with underscores, and mapping known aliases to standard joint names.
   static String? _normalizeJointName(String? raw) {
     if (raw == null || raw.trim().isEmpty) {
       return null;
@@ -865,6 +881,7 @@ class _PoseMatcher {
     return key;
   }
 
+
   static Map<String, Offset> _normalizeToUnitBox(Map<String, Offset> raw) {
     if (raw.isEmpty) {
       return {};
@@ -885,7 +902,8 @@ class _PoseMatcher {
         entry.key: Offset((entry.value.dx - minX) / width, (entry.value.dy - minY) / height),
     };
   }
-
+// Filters the default connections to include only those pairs of joints that are present in the provided set of available joints. 
+//This ensures that the wireframe overlay only attempts to draw connections between joints that are actually detected and available in the target skeleton, preventing errors and improving visual clarity.
   static List<List<String>> connectionsFor(Set<String> availableJoints) {
     return defaultConnections
         .where(
