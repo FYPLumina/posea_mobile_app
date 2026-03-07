@@ -47,6 +47,7 @@ class PoseImageApiService {
   Future<List<Pose>?> suggestPoses({
     required String imageBase64,
     required String accessToken,
+    String? gender,
   }) async {
     final url = Uri.parse('$baseUrl/background/suggest_poses');
     AppLogger.info('POST $url');
@@ -55,7 +56,10 @@ class PoseImageApiService {
         () => http.post(
           url,
           headers: {'Authorization': 'Bearer $accessToken'},
-          body: {'image_base64': imageBase64},
+          body: {
+            'image_base64': imageBase64,
+            if (gender != null && gender.trim().isNotEmpty) 'gender': gender.trim(),
+          },
         ),
       );
       AppLogger.debug('Response: \${response.statusCode} \${response.body}');

@@ -27,6 +27,7 @@ class UploadBackgroundScreen extends StatefulWidget {
 
 class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
   bool _loading = false;
+  String _selectedGender = 'all';
 
   Future<bool> _showUploadAnywayDialog() async {
     final l10n = AppLocalizations.of(context)!;
@@ -196,10 +197,23 @@ class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
       }
 
       final poseRepo = PoseImageRepository(apiService: PoseImageApiService());
-      final poses = await poseRepo.suggestPoses(imageBase64: base64Image, accessToken: accessToken);
-      if (poses != null) {
+      final requestedGender = _selectedGender == 'all' ? null : _selectedGender;
+      final poses = await poseRepo.suggestPoses(
+        imageBase64: base64Image,
+        accessToken: accessToken,
+        gender: requestedGender,
+      );
+
+      final filteredPoses = poses == null || requestedGender == null
+          ? poses
+          : poses
+                .where((pose) => pose.gender.toLowerCase() == requestedGender.toLowerCase())
+                .toList();
+      if (filteredPoses != null) {
         if (!mounted) return;
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) => ViewPoseScreen(poses: poses)));
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => ViewPoseScreen(poses: filteredPoses)));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -282,6 +296,29 @@ class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 24),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    _GenderFilterChip(
+                      label: 'All',
+                      selected: _selectedGender == 'all',
+                      onSelected: () => setState(() => _selectedGender = 'all'),
+                    ),
+                    _GenderFilterChip(
+                      label: 'Male',
+                      selected: _selectedGender == 'male',
+                      onSelected: () => setState(() => _selectedGender = 'male'),
+                    ),
+                    _GenderFilterChip(
+                      label: 'Female',
+                      selected: _selectedGender == 'female',
+                      onSelected: () => setState(() => _selectedGender = 'female'),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -323,6 +360,34 @@ class _UploadBackgroundScreenState extends State<UploadBackgroundScreen> {
             child: const Center(child: CircularProgressIndicator()),
           ),
       ],
+    );
+  }
+}
+
+class _GenderFilterChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  const _GenderFilterChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onSelected(),
+      selectedColor: const Color(0xFF6B4F36),
+      labelStyle: TextStyle(color: selected ? Colors.white : const Color(0xFF6B4F36)),
+      side: const BorderSide(color: Color(0xFF6B4F36)),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      showCheckmark: false,
     );
   }
 }

@@ -341,7 +341,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyPolicySection3Body =>
-      'We use the collected information for the following purposes:\n\n- To create and manage user accounts\n- To authenticate users during login\n- To analyze uploaded images using AI models\n- To generate pose suggestions based on the background environment\n- To display wireframe pose guidance for users\n- To allow users to capture and save photos\n- To improve application performance and user experience\n\nThe AI model analyzes the uploaded background image to identify environment conditions such as lighting and scene type, then retrieves suitable poses from the pose dataset.\n\nLumina_20_21_SRS[1.3]_Revised';
+      'We use the collected information for the following purposes:\n\n- To create and manage user accounts\n- To authenticate users during login\n- To analyze uploaded images using AI models\n- To generate pose suggestions based on the background environment\n- To display wireframe pose guidance for users\n- To allow users to capture and save photos\n- To improve application performance and user experience\n\nThe AI model analyzes the uploaded background image to identify environment conditions such as lighting and scene type, then retrieves suitable poses from the pose dataset.';
 
   @override
   String get privacyPolicySection4Title => '4. Camera and Storage Permissions';
@@ -369,7 +369,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyPolicySection7Body =>
-      'Users have full control over their account and data. Through the Manage Account feature, users can:\n\n- Update personal information\n- Change their password\n- Log out from the application\n- Delete their account permanently\n\nOnce an account is deleted, the associated data cannot be recovered.\n\nLumina_20_21_SRS[1.3]_Revised';
+      'Users have full control over their account and data. Through the Manage Account feature, users can:\n\n- Update personal information\n- Change their password\n- Log out from the application\n- Delete their account permanently\n\nOnce an account is deleted, the associated data cannot be recovered.';
 
   @override
   String get privacyPolicySection8Title => '8. Photo Storage';

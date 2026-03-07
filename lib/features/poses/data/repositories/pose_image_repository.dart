@@ -30,7 +30,12 @@ class PoseImageRepository {
   Future<List<Pose>?> suggestPoses({
     required String imageBase64,
     required String accessToken,
+    String? gender,
   }) async {
-    return await apiService.suggestPoses(imageBase64: imageBase64, accessToken: accessToken);
+    return await apiService.suggestPoses(
+      imageBase64: imageBase64,
+      accessToken: accessToken,
+      gender: gender,
+    );
   }
 }

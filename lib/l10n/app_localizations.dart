@@ -719,7 +719,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicySection3Body.
   ///
   /// In en, this message translates to:
-  /// **'We use the collected information for the following purposes:\n\n- To create and manage user accounts\n- To authenticate users during login\n- To analyze uploaded images using AI models\n- To generate pose suggestions based on the background environment\n- To display wireframe pose guidance for users\n- To allow users to capture and save photos\n- To improve application performance and user experience\n\nThe AI model analyzes the uploaded background image to identify environment conditions such as lighting and scene type, then retrieves suitable poses from the pose dataset.\n\nLumina_20_21_SRS[1.3]_Revised'**
+  /// **'We use the collected information for the following purposes:\n\n- To create and manage user accounts\n- To authenticate users during login\n- To analyze uploaded images using AI models\n- To generate pose suggestions based on the background environment\n- To display wireframe pose guidance for users\n- To allow users to capture and save photos\n- To improve application performance and user experience\n\nThe AI model analyzes the uploaded background image to identify environment conditions such as lighting and scene type, then retrieves suitable poses from the pose dataset.'**
   String get privacyPolicySection3Body;
 
   /// No description provided for @privacyPolicySection4Title.
@@ -767,7 +767,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicySection7Body.
   ///
   /// In en, this message translates to:
-  /// **'Users have full control over their account and data. Through the Manage Account feature, users can:\n\n- Update personal information\n- Change their password\n- Log out from the application\n- Delete their account permanently\n\nOnce an account is deleted, the associated data cannot be recovered.\n\nLumina_20_21_SRS[1.3]_Revised'**
+  /// **'Users have full control over their account and data. Through the Manage Account feature, users can:\n\n- Update personal information\n- Change their password\n- Log out from the application\n- Delete their account permanently\n\nOnce an account is deleted, the associated data cannot be recovered.'**
   String get privacyPolicySection7Body;
 
   /// No description provided for @privacyPolicySection8Title.
