@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -8,6 +7,7 @@ import 'package:camera/camera.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 import 'package:go_router/go_router.dart';
 import 'package:posea_mobile_app/core/utils/logger.dart';
+import 'package:posea_mobile_app/features/poses/domain/services/pose_comparison_service.dart';
 
 class WireframeCameraScreen extends StatefulWidget {
   final String? skeletonData;
@@ -27,13 +27,14 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
   );
   bool _isProcessingFrame = false;
   bool _didLoadArgs = false;
+  final PoseComparisonService _poseComparisonService = const PoseComparisonService();
 
   String? _skeletonData;
   String _poseIdLog = '';
   bool _isFavouriteLog = false;
 
-  Map<String, Offset> _targetKeypoints = _PoseMatcher.defaultTargetSkeleton;
-  List<List<String>> _targetConnections = _PoseMatcher.defaultConnections;
+  Map<String, Offset> _targetKeypoints = PoseComparisonService.defaultTargetSkeleton;
+  List<List<String>> _targetConnections = PoseComparisonService.defaultConnections;
   int _matchPercentage = 0;
   double _skeletonWidthFactor = 0.45;
   double _skeletonHeightFactor = 0.85;
@@ -43,7 +44,7 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
   Offset _skeletonCenter = const Offset(0.5, 0.55);
   Offset _selectedPoseCenter = const Offset(0.5, 0.55);
 
-// For debugging: log received arguments when screen is opened and when capture button is pressed.
+  // For debugging: log received arguments when screen is opened and when capture button is pressed.
   @override
   void initState() {
     super.initState();
@@ -67,9 +68,9 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
     }
   }
 
-// Load arguments passed via GoRouter when the screen is first opened. 
-//This includes the skeleton data to match against, as well as logging info like pose_id and is_favourite for analytics. 
-//We only want to load these once, so we guard with _didLoadArgs to prevent reloading if dependencies change.
+  // Load arguments passed via GoRouter when the screen is first opened.
+  //This includes the skeleton data to match against, as well as logging info like pose_id and is_favourite for analytics.
+  //We only want to load these once, so we guard with _didLoadArgs to prevent reloading if dependencies change.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -123,13 +124,38 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
         return;
       }
 
-      final Map<String, Offset> userKeypoints = _PoseMatcher.extractUserKeypoints(poses.first);
-      final _BodyMetrics? bodyMetrics = _PoseMatcher.extractBodyMetrics(
-        poses.first,
+      Pose? bestHumanPose;
+      double bestHumanScore = 0.0;
+      for (final pose in poses) {
+        final score = _poseComparisonService.humanPoseScore(
+          pose,
+          imageWidth: image.width.toDouble(),
+          imageHeight: image.height.toDouble(),
+        );
+        if (score > bestHumanScore) {
+          bestHumanScore = score;
+          bestHumanPose = pose;
+        }
+      }
+
+      if (bestHumanPose == null || bestHumanScore < 0.70) {
+        setState(() {
+          _matchPercentage = 0;
+          _distanceInstruction = 'No clear standing person found. Step away from objects and retry';
+        });
+        _isProcessingFrame = false;
+        return;
+      }
+
+      final Map<String, Offset> userKeypoints = _poseComparisonService.extractUserKeypoints(
+        bestHumanPose,
+      );
+      final BodyMetrics? bodyMetrics = _poseComparisonService.extractBodyMetrics(
+        bestHumanPose,
         imageWidth: image.width.toDouble(),
         imageHeight: image.height.toDouble(),
       );
-      final _PoseMatchResult result = _PoseMatcher.calculateMatch(
+      final PoseMatchResult result = _poseComparisonService.calculateFrameMatch(
         target: _targetKeypoints,
         user: userKeypoints,
       );
@@ -182,13 +208,13 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
     );
   }
 
-// Parses the skeleton data from the provided JSON string, extracts keypoints and their placements, and updates the target skeleton and UI state accordingly. If placement info is included, it adjusts the skeleton's position and size on screen to match the intended pose layout.
+  // Parses the skeleton data from the provided JSON string, extracts keypoints and their placements, and updates the target skeleton and UI state accordingly. If placement info is included, it adjusts the skeleton's position and size on screen to match the intended pose layout.
   void _setTargetSkeleton(String? skeletonData) {
-    final parsed = _PoseMatcher.parseSkeletonData(skeletonData);
-    final placement = _PoseMatcher.parseSkeletonPlacement(skeletonData);
+    final parsed = _poseComparisonService.parseSkeletonData(skeletonData);
+    final placement = _poseComparisonService.parseSkeletonPlacement(skeletonData);
     setState(() {
-      _targetKeypoints = parsed.isNotEmpty ? parsed : _PoseMatcher.defaultTargetSkeleton;
-      _targetConnections = _PoseMatcher.connectionsFor(_targetKeypoints.keys.toSet());
+      _targetKeypoints = parsed.isNotEmpty ? parsed : PoseComparisonService.defaultTargetSkeleton;
+      _targetConnections = _poseComparisonService.connectionsFor(_targetKeypoints.keys.toSet());
       if (placement != null) {
         _selectedPoseCenter = placement.center;
         _skeletonCenter = placement.center;
@@ -206,7 +232,7 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
     });
   }
 
-// Clean up resources when the screen is disposed. Stop the camera stream if active, close the pose detector, and dispose the camera controller to free up memory and avoid leaks.
+  // Clean up resources when the screen is disposed. Stop the camera stream if active, close the pose detector, and dispose the camera controller to free up memory and avoid leaks.
   @override
   void dispose() {
     if (_controller?.value.isStreamingImages == true) {
@@ -217,8 +243,8 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
     super.dispose();
   }
 
-// Build the UI for the wireframe camera screen. This includes a header with a close button and title, an instruction box showing the current match percentage and distance guidance, the camera preview with a custom painter overlay to draw the target skeleton, and a capture button at the bottom.
-// The skeleton color changes to green when the user achieves a good match (90% or above) to provide visual feedback.
+  // Build the UI for the wireframe camera screen. This includes a header with a close button and title, an instruction box showing the current match percentage and distance guidance, the camera preview with a custom painter overlay to draw the target skeleton, and a capture button at the bottom.
+  // The skeleton color changes to green when the user achieves a good match (90% or above) to provide visual feedback.
   @override
   Widget build(BuildContext context) {
     final bool isMatched = _matchPercentage >= 80;
@@ -359,9 +385,10 @@ class _WireframeCameraScreenState extends State<WireframeCameraScreen> {
       ),
     );
   }
-// Helper method to build distance instruction based on user's body metrics compared to target skeleton size.
-// It calculates a ratio of user's body width and height to the target skeleton's dimensions, and provides feedback on whether to move closer or further from the camera, along with an estimated distance in centimeters.
-  String _buildDistanceInstruction(_BodyMetrics metrics) {
+
+  // Helper method to build distance instruction based on user's body metrics compared to target skeleton size.
+  // It calculates a ratio of user's body width and height to the target skeleton's dimensions, and provides feedback on whether to move closer or further from the camera, along with an estimated distance in centimeters.
+  String _buildDistanceInstruction(BodyMetrics metrics) {
     final targetHeight = _baseSkeletonHeightFactor.clamp(0.20, 0.99);
     final targetWidth = _baseSkeletonWidthFactor.clamp(0.15, 0.95);
     final heightRatio = metrics.height / targetHeight;
@@ -403,8 +430,8 @@ class _PoseWireframePainter extends CustomPainter {
     required this.heightFactor,
   });
 
-// The paint method is called to render the skeleton wireframe on the canvas. 
-//It calculates the bounding box of the keypoints to determine how to scale and position them within the defined skeleton area.
+  // The paint method is called to render the skeleton wireframe on the canvas.
+  //It calculates the bounding box of the keypoints to determine how to scale and position them within the defined skeleton area.
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -453,8 +480,8 @@ class _PoseWireframePainter extends CustomPainter {
     }
   }
 
-// Determines whether the painter should repaint when the widget is updated.
-// It compares the current properties with the old ones, and returns true if any of the key properties (color, points, connections, center, widthFactor, heightFactor) have changed, indicating that the skeleton wireframe needs to be redrawn with new data or styling.
+  // Determines whether the painter should repaint when the widget is updated.
+  // It compares the current properties with the old ones, and returns true if any of the key properties (color, points, connections, center, widthFactor, heightFactor) have changed, indicating that the skeleton wireframe needs to be redrawn with new data or styling.
   @override
   bool shouldRepaint(covariant _PoseWireframePainter oldDelegate) {
     return oldDelegate.color != color ||
@@ -463,437 +490,5 @@ class _PoseWireframePainter extends CustomPainter {
         oldDelegate.center != center ||
         oldDelegate.widthFactor != widthFactor ||
         oldDelegate.heightFactor != heightFactor;
-  }
-}
-
-class _BodyMetrics {
-  final double width;
-  final double height;
-
-  const _BodyMetrics({required this.width, required this.height});
-}
-
-class _SkeletonPlacement {
-  final Offset center;
-  final double width;
-  final double height;
-
-  const _SkeletonPlacement({required this.center, required this.width, required this.height});
-}
-
-class _PoseMatchResult {
-  final int matchPercentage;
-  final String instruction;
-
-  const _PoseMatchResult({required this.matchPercentage, required this.instruction});
-}
-
-class _PoseMatcher {
-  static const Map<int, String> _mediapipeIdToJoint = {
-    0: 'nose',
-    2: 'left_eye',
-    5: 'right_eye',
-    7: 'left_ear',
-    8: 'right_ear',
-    11: 'left_shoulder',
-    12: 'right_shoulder',
-    13: 'left_elbow',
-    14: 'right_elbow',
-    15: 'left_wrist',
-    16: 'right_wrist',
-    23: 'left_hip',
-    24: 'right_hip',
-    25: 'left_knee',
-    26: 'right_knee',
-    27: 'left_ankle',
-    28: 'right_ankle',
-  };
-
-  static const List<List<String>> defaultConnections = [
-    ['left_shoulder', 'right_shoulder'],
-    ['left_shoulder', 'left_elbow'],
-    ['left_elbow', 'left_wrist'],
-    ['right_shoulder', 'right_elbow'],
-    ['right_elbow', 'right_wrist'],
-    ['left_shoulder', 'left_hip'],
-    ['right_shoulder', 'right_hip'],
-    ['left_hip', 'right_hip'],
-    ['left_hip', 'left_knee'],
-    ['left_knee', 'left_ankle'],
-    ['right_hip', 'right_knee'],
-    ['right_knee', 'right_ankle'],
-  ];
-
-  static Map<String, Offset> get defaultTargetSkeleton => {
-    'nose': const Offset(0.5, 0.12),
-    'left_shoulder': const Offset(0.42, 0.28),
-    'right_shoulder': const Offset(0.58, 0.28),
-    'left_elbow': const Offset(0.35, 0.44),
-    'right_elbow': const Offset(0.65, 0.44),
-    'left_wrist': const Offset(0.3, 0.62),
-    'right_wrist': const Offset(0.7, 0.62),
-    'left_hip': const Offset(0.44, 0.52),
-    'right_hip': const Offset(0.56, 0.52),
-    'left_knee': const Offset(0.44, 0.75),
-    'right_knee': const Offset(0.56, 0.75),
-    'left_ankle': const Offset(0.44, 0.94),
-    'right_ankle': const Offset(0.56, 0.94),
-  };
-
-  static Map<String, Offset> parseSkeletonData(String? raw) {
-    if (raw == null || raw.trim().isEmpty) {
-      return {};
-    }
-    try {
-      final dynamic decoded = jsonDecode(raw);
-      final Map<String, Offset> parsed = _extractFromDynamic(decoded);
-      return _normalizeToUnitBox(parsed);
-    } catch (_) {
-      return {};
-    }
-  }
-
-  static _SkeletonPlacement? parseSkeletonPlacement(String? raw) {
-    if (raw == null || raw.trim().isEmpty) {
-      return null;
-    }
-    try {
-      final dynamic decoded = jsonDecode(raw);
-      final Map<String, Offset> parsed = _extractFromDynamic(decoded);
-      if (parsed.isEmpty) {
-        return null;
-      }
-
-      final xs = parsed.values.map((e) => e.dx).toList();
-      final ys = parsed.values.map((e) => e.dy).toList();
-      final minX = xs.reduce(math.min);
-      final maxX = xs.reduce(math.max);
-      final minY = ys.reduce(math.min);
-      final maxY = ys.reduce(math.max);
-
-      final allNormalized = minX >= 0 && maxX <= 1.0 && minY >= 0 && maxY <= 1.0;
-
-      if (allNormalized) {
-        return _SkeletonPlacement(
-          center: Offset(
-            ((minX + maxX) / 2).clamp(0.15, 0.85),
-            ((minY + maxY) / 2).clamp(0.1, 0.9),
-          ),
-          width: (maxX - minX).abs(),
-          height: (maxY - minY).abs(),
-        );
-      }
-
-      return null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  static Map<String, Offset> extractUserKeypoints(Pose pose) {
-    final Map<String, PoseLandmarkType> keyMap = {
-      'nose': PoseLandmarkType.nose,
-      'left_eye': PoseLandmarkType.leftEye,
-      'right_eye': PoseLandmarkType.rightEye,
-      'left_ear': PoseLandmarkType.leftEar,
-      'right_ear': PoseLandmarkType.rightEar,
-      'left_shoulder': PoseLandmarkType.leftShoulder,
-      'right_shoulder': PoseLandmarkType.rightShoulder,
-      'left_elbow': PoseLandmarkType.leftElbow,
-      'right_elbow': PoseLandmarkType.rightElbow,
-      'left_wrist': PoseLandmarkType.leftWrist,
-      'right_wrist': PoseLandmarkType.rightWrist,
-      'left_hip': PoseLandmarkType.leftHip,
-      'right_hip': PoseLandmarkType.rightHip,
-      'left_knee': PoseLandmarkType.leftKnee,
-      'right_knee': PoseLandmarkType.rightKnee,
-      'left_ankle': PoseLandmarkType.leftAnkle,
-      'right_ankle': PoseLandmarkType.rightAnkle,
-    };
-
-    final Map<String, Offset> points = {};
-    for (final entry in keyMap.entries) {
-      final landmark = pose.landmarks[entry.value];
-      if (landmark != null) {
-        points[entry.key] = Offset(landmark.x.toDouble(), landmark.y.toDouble());
-      }
-    }
-    return _normalizeToUnitBox(points);
-  }
-
-  static _PoseMatchResult calculateMatch({
-    required Map<String, Offset> target,
-    required Map<String, Offset> user,
-  }) {
-    final Set<String> common = target.keys.toSet().intersection(user.keys.toSet());
-    if (common.length < 4) {
-      return const _PoseMatchResult(
-        matchPercentage: 0,
-        instruction: 'Keep your full body visible in the frame',
-      );
-    }
-
-    double totalScore = 0;
-    String? worstJoint;
-    double worstDistance = -1;
-    double worstDx = 0;
-    double worstDy = 0;
-
-    for (final joint in common) {
-      final Offset t = target[joint]!;
-      final Offset u = user[joint]!;
-      final double dx = t.dx - u.dx;
-      final double dy = t.dy - u.dy;
-      final double distance = math.sqrt(dx * dx + dy * dy);
-      final double score = (1 - (distance / 0.35)).clamp(0.0, 1.0);
-      totalScore += score;
-
-      if (distance > worstDistance) {
-        worstDistance = distance;
-        worstJoint = joint;
-        worstDx = dx;
-        worstDy = dy;
-      }
-    }
-
-    final int percentage = ((totalScore / common.length) * 100).round().clamp(0, 100);
-    final String instruction = _buildInstruction(
-      percentage: percentage,
-      joint: worstJoint,
-      dx: worstDx,
-      dy: worstDy,
-    );
-
-    return _PoseMatchResult(matchPercentage: percentage, instruction: instruction);
-  }
-
-  static _BodyMetrics? extractBodyMetrics(
-    Pose pose, {
-    required double imageWidth,
-    required double imageHeight,
-  }) {
-    if (imageWidth <= 0 || imageHeight <= 0) {
-      return null;
-    }
-
-    const tracked = [
-      PoseLandmarkType.nose,
-      PoseLandmarkType.leftShoulder,
-      PoseLandmarkType.rightShoulder,
-      PoseLandmarkType.leftHip,
-      PoseLandmarkType.rightHip,
-      PoseLandmarkType.leftKnee,
-      PoseLandmarkType.rightKnee,
-      PoseLandmarkType.leftAnkle,
-      PoseLandmarkType.rightAnkle,
-    ];
-
-    final points = <Offset>[];
-    for (final type in tracked) {
-      final landmark = pose.landmarks[type];
-      if (landmark == null) {
-        continue;
-      }
-      points.add(
-        Offset(
-          (landmark.x / imageWidth).clamp(0.0, 1.0),
-          (landmark.y / imageHeight).clamp(0.0, 1.0),
-        ),
-      );
-    }
-
-    if (points.length < 4) {
-      return null;
-    }
-
-    final minX = points.map((p) => p.dx).reduce(math.min);
-    final maxX = points.map((p) => p.dx).reduce(math.max);
-    final minY = points.map((p) => p.dy).reduce(math.min);
-    final maxY = points.map((p) => p.dy).reduce(math.max);
-
-    final width = ((maxX - minX).abs() * 1.12).clamp(0.05, 1.0);
-    final height = ((maxY - minY).abs() * 1.08).clamp(0.08, 1.0);
-    return _BodyMetrics(width: width, height: height);
-  }
-
-  static String _buildInstruction({
-    required int percentage,
-    required String? joint,
-    required double dx,
-    required double dy,
-  }) {
-    if (percentage >= 80) {
-      return 'Excellent! Hold this pose';
-    }
-    if (joint == null) {
-      return 'Align your body with the target skeleton';
-    }
-
-    final String prettyJoint = joint.replaceAll('_', ' ');
-    final List<String> movements = [];
-
-    if (dx.abs() > 0.04) {
-      movements.add(dx > 0 ? 'move right' : 'move left');
-    }
-    if (dy.abs() > 0.04) {
-      movements.add(dy > 0 ? 'move down' : 'move up');
-    }
-
-    if (movements.isEmpty) {
-      return 'Fine tune your posture and hold steady';
-    }
-
-    return 'Adjust $prettyJoint: ${movements.join(' and ')}';
-  }
-
-  static Map<String, Offset> _extractFromDynamic(dynamic decoded) {
-    final Map<String, Offset> points = {};
-
-    if (decoded is List) {
-      for (final item in decoded) {
-        if (item is Map) {
-          final dynamic rawId = item['id'];
-          final int? id = rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
-          final String? name = id != null
-              ? (_mediapipeIdToJoint[id] ??
-                    _normalizeJointName(item['name']?.toString() ?? item['key']?.toString()))
-              : _normalizeJointName(
-                  item['name']?.toString() ?? item['id']?.toString() ?? item['key']?.toString(),
-                );
-          final Offset? point = _offsetFromAny(item);
-          if (name != null && point != null) {
-            points[name] = point;
-          }
-        }
-      }
-      return points;
-    }
-
-    if (decoded is Map) {
-      final dynamic candidates = decoded['keypoints'] ?? decoded['landmarks'] ?? decoded['points'];
-      if (candidates != null) {
-        points.addAll(_extractFromDynamic(candidates));
-      }
-
-      for (final entry in decoded.entries) {
-        final String? key = _normalizeJointName(entry.key.toString());
-        if (key == null) {
-          continue;
-        }
-        final Offset? point = _offsetFromAny(entry.value);
-        if (point != null) {
-          points[key] = point;
-        }
-      }
-    }
-
-    return points;
-  }
-
-  static Offset? _offsetFromAny(dynamic value) {
-    if (value is Map) {
-      final x = _toDouble(value['x'] ?? value['X'] ?? value['dx']);
-      final y = _toDouble(value['y'] ?? value['Y'] ?? value['dy']);
-      if (x != null && y != null) {
-        return Offset(x, y);
-      }
-    }
-
-    if (value is List && value.length >= 2) {
-      final x = _toDouble(value[0]);
-      final y = _toDouble(value[1]);
-      if (x != null && y != null) {
-        return Offset(x, y);
-      }
-    }
-    return null;
-  }
-
-  static double? _toDouble(dynamic value) {
-    if (value is num) {
-      return value.toDouble();
-    }
-    if (value is String) {
-      return double.tryParse(value);
-    }
-    return null;
-  }
-
-  static String? _normalizeJointName(String? raw) {
-    if (raw == null || raw.trim().isEmpty) {
-      return null;
-    }
-    final key = raw
-        .trim()
-        .toLowerCase()
-        .replaceAll('-', '_')
-        .replaceAll(' ', '_')
-        .replaceAll('left', 'left')
-        .replaceAll('right', 'right');
-
-    const aliases = {
-      'leftshoulder': 'left_shoulder',
-      'rightshoulder': 'right_shoulder',
-      'leftelbow': 'left_elbow',
-      'rightelbow': 'right_elbow',
-      'leftwrist': 'left_wrist',
-      'rightwrist': 'right_wrist',
-      'lefthip': 'left_hip',
-      'righthip': 'right_hip',
-      'leftknee': 'left_knee',
-      'rightknee': 'right_knee',
-      'leftankle': 'left_ankle',
-      'rightankle': 'right_ankle',
-      'l_shoulder': 'left_shoulder',
-      'r_shoulder': 'right_shoulder',
-      'l_elbow': 'left_elbow',
-      'r_elbow': 'right_elbow',
-      'l_wrist': 'left_wrist',
-      'r_wrist': 'right_wrist',
-      'l_hip': 'left_hip',
-      'r_hip': 'right_hip',
-      'l_knee': 'left_knee',
-      'r_knee': 'right_knee',
-      'l_ankle': 'left_ankle',
-      'r_ankle': 'right_ankle',
-    };
-
-    if (aliases.containsKey(key)) {
-      return aliases[key];
-    }
-
-    return key;
-  }
-
-  static Map<String, Offset> _normalizeToUnitBox(Map<String, Offset> raw) {
-    if (raw.isEmpty) {
-      return {};
-    }
-
-    final xs = raw.values.map((e) => e.dx).toList();
-    final ys = raw.values.map((e) => e.dy).toList();
-    final minX = xs.reduce(math.min);
-    final maxX = xs.reduce(math.max);
-    final minY = ys.reduce(math.min);
-    final maxY = ys.reduce(math.max);
-
-    final width = (maxX - minX).abs() < 1e-5 ? 1.0 : (maxX - minX);
-    final height = (maxY - minY).abs() < 1e-5 ? 1.0 : (maxY - minY);
-
-    return {
-      for (final entry in raw.entries)
-        entry.key: Offset((entry.value.dx - minX) / width, (entry.value.dy - minY) / height),
-    };
-  }
-
-  static List<List<String>> connectionsFor(Set<String> availableJoints) {
-    return defaultConnections
-        .where(
-          (pair) =>
-              pair.length == 2 &&
-              availableJoints.contains(pair[0]) &&
-              availableJoints.contains(pair[1]),
-        )
-        .toList();
   }
 }
